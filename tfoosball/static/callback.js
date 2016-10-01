@@ -45,9 +45,20 @@ console.log('Request', request);
 $.ajax(request)
     .then(
         r => {
-            window.opener.authenticated(r);
+            const data = {
+                token: r.key,
+                type: "AUTH::SET_TOKEN",
+            };
+            window.opener.postMessage(data, 'http://localhost:3000/');
             window.close();
         },
-        e => console.log("Error", e)
+        e => {
+            const data = {
+                type: "ERROR::RAISE",
+                msg: `Cannot log in. (Status code ${e.status})`,
+            };
+            window.opener.postMessage(data, 'http://localhost:3000/');
+            window.close();
+        }
     );
 console.groupEnd();
