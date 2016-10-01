@@ -1,4 +1,5 @@
 {% load static %}
+{% load account %}
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -13,6 +14,14 @@
 </head>
 <body>
     <h1>Example page</h1>
-    <button onclick="return popupwindow('/auth/', 'Let me in with Google', 500, 600)">Let me in with Google</button>
+    {% if user.is_authenticated %}
+        <div>
+            Logged in as {% user_display user %}
+            <button onclick="letmeout()">Let me out</button>
+        </div>
+    {% else %}
+        <button onclick="return popupwindow()">Let me in with Google</button>
+    {% endif %}
+
 </body>
 </html>

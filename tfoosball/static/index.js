@@ -6,6 +6,8 @@ const data = {
     scope: 'email',
 };
 
+const refresh = () => location.reload();
+
 function serialize(obj) {
   var str = [];
   for(var p in obj)
@@ -19,8 +21,20 @@ function popupwindow() {
     const url = `${google_endpoint}?${serialize(data)}`;
     const title='Let me in with Google';
     const w = 500;
-    const h = 650;
+    const h = 600;
     var left = (screen.width/2)-(w/2);
     var top = (screen.height/2)-(h/2);
     return window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width='+w+', height='+h+', top='+top+', left='+left);
+}
+
+function authenticated(response) {
+    refresh();
+}
+
+function letmeout() {
+    $.ajax({
+        method: 'GET',
+        url: '/rest-auth/logout/',
+    })
+    .then(refresh, console.error.bind(console));
 }
