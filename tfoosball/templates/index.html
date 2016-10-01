@@ -4,9 +4,15 @@
 <head>
     <meta charset="utf-8">
     <title>Example page</title>
+    <link rel="stylesheet" href="{% static "styles.css" %}">
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+            integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+            crossorigin="anonymous">
+    </script>
     <script src="{% static "index.js" %}"></script>
 </head>
 <body>
     <h1>Example page</h1>
+    <button onclick="return popupwindow('/auth/', 'Let me in with Google', 500, 600)">Let me in with Google</button>
 </body>
 </html>
