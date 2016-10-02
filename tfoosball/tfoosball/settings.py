@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'rest_framework',
     'rest_framework.authtoken',
+    'tfoosball',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -140,5 +141,13 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 SITE_ID = 1
+
+# Authentication
+
 REST_SESSION_LOGIN = True
 ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_USERNAME_MIN_LENGTH = 3
+# ACCOUNT_USERNAME_REQUIRED = False # ?
+AUTH_USER_MODEL = "tfoosball.Player"
