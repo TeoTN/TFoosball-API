@@ -36,4 +36,3 @@ urlpatterns = [
     url(r'^auth/callback/?$', CallbackView.as_view(), name='auth_callback'),
     url(r'^$', TemplateView.as_view(template_name='index.html'), name='index'),
 ] + router.urls
-

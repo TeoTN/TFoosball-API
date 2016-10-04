@@ -21,6 +21,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MatchSerializer(serializers.ModelSerializer):
+    points = serializers.IntegerField(required=False)
+
     class Meta:
         model = Match
         fields = ('red_att', 'red_def', 'blue_att', 'blue_def', 'date', 'red_score', 'blue_score', 'points')

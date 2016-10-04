@@ -22,3 +22,16 @@ class Match(models.Model):
     red_score = models.IntegerField()
     blue_score = models.IntegerField()
     points = models.IntegerField()
+    status = models.IntegerField(default=20)
+
+    def calculate_points(self):
+        K = int(self.status)
+        G = (11+abs(self.red_score - self.blue_score)) / 8
+        dr = ((self.red_att.exp + self.red_def.exp) - (self.blue_att.exp + self.red_att.exp))
+        We = 1 / ((10 ** -(dr/400))+1)
+        return int(K*G*(1-We))
+
+    def save(self, *args, **kwargs):
+        if not self.points:
+            self.points = self.calculate_points()
+        super(Match, self).save(*args, **kwargs)
