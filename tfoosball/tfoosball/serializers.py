@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Player
+from .models import Player, Match
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -18,3 +18,9 @@ class UserSerializer(serializers.ModelSerializer):
             'lowest_exp',
             'highest_exp'
         )
+
+
+class MatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Match
+        fields = ('__all__',)

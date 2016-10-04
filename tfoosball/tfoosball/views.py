@@ -2,8 +2,8 @@ from django.views.generic import TemplateView
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from rest_auth.registration.views import SocialLoginView
 from rest_framework.viewsets import ModelViewSet
-from .models import Player
-from .serializers import UserSerializer
+from .models import Player, Match
+from .serializers import UserSerializer, MatchSerializer
 
 
 class GoogleLoginView(SocialLoginView):
@@ -25,3 +25,8 @@ class CallbackView(TemplateView):
 class UserViewSet(ModelViewSet):
     queryset = Player.objects.all()
     serializer_class = UserSerializer
+
+
+class MatchViewSet(ModelViewSet):
+    queryset = Match.objects.all()
+    serializer_class = MatchSerializer

@@ -16,11 +16,17 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 from django.views.generic import TemplateView
-from .views import CallbackView, GoogleLoginView, UserViewSet
+from .views import (
+    CallbackView,
+    GoogleLoginView,
+    UserViewSet,
+    MatchViewSet,
+)
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register(r'api/users', UserViewSet)
+router.register(r'api/matches', MatchViewSet)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
