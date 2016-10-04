@@ -14,7 +14,6 @@ class Player(AbstractUser):
 
 
 class Match(models.Model):
-    # TODO Consider M2M + ROLEs
     red_att = models.ForeignKey(Player, related_name='red_att')
     red_def = models.ForeignKey(Player, related_name='red_def')
     blue_att = models.ForeignKey(Player, related_name='blue_att')
