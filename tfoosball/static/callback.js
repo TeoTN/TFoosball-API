@@ -1,4 +1,5 @@
-var params = {}, queryString = location.hash.substring(1),
+var params = {},
+    queryString = location.hash.substring(1),
     regex = /([^&=]+)=([^&]*)/g, m;
 while (m = regex.exec(queryString)) {
   params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
@@ -34,14 +35,11 @@ while (m = regex.exec(queryString)) {
     });
 })();
 
-console.group('AUTH');
-console.log("Params", params);
 const request = {
     method: 'POST',
     url: '/rest-auth/google/',
     data: params,
 };
-console.log('Request', request);
 $.ajax(request)
     .then(
         r => {
@@ -61,4 +59,3 @@ $.ajax(request)
             window.close();
         }
     );
-console.groupEnd();
