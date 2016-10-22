@@ -13,8 +13,11 @@ class UserSerializer(serializers.ModelSerializer):
             'exp',
             'att_ratio',
             'def_ratio',
+            'win_ratio',
             'win_streak',
             'lose_streak',
+            'curr_lose_streak',
+            'curr_win_streak',
             'lowest_exp',
             'highest_exp'
         )

@@ -10,7 +10,9 @@ class Player(AbstractUser):
     def_ratio = models.FloatField(default=0.0, db_column='def')
     win_ratio = models.FloatField(default=0.0, db_column='win')
     win_streak = models.IntegerField(default=0)
+    curr_win_streak = models.IntegerField(default=0)
     lose_streak = models.IntegerField(default=0)
+    curr_lose_streak = models.IntegerField(default=0)
     lowest_exp = models.IntegerField(default=1000)
     highest_exp = models.IntegerField(default=1000)
 
