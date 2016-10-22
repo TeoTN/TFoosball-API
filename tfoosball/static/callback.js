@@ -45,17 +45,12 @@ $.ajax(request)
         r => {
             const data = {
                 token: r.key,
-                type: "AUTH::SET_TOKEN",
             };
             window.opener.postMessage(data, 'http://localhost:3000/');
             window.close();
         },
-        e => {
-            const data = {
-                type: "ERROR::RAISE",
-                msg: `Cannot log in. (Status code ${e.status})`,
-            };
-            window.opener.postMessage(data, 'http://localhost:3000/');
+        () => {
+            window.opener.postMessage({ error: 'failure' }, 'http://localhost:3000/');
             window.close();
         }
     );
