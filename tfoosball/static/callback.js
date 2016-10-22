@@ -1,4 +1,5 @@
-var params = {}, queryString = location.hash.substring(1),
+var params = {},
+    queryString = location.hash.substring(1),
     regex = /([^&=]+)=([^&]*)/g, m;
 while (m = regex.exec(queryString)) {
   params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
@@ -34,31 +35,22 @@ while (m = regex.exec(queryString)) {
     });
 })();
 
-console.group('AUTH');
-console.log("Params", params);
 const request = {
     method: 'POST',
     url: '/rest-auth/google/',
     data: params,
 };
-console.log('Request', request);
 $.ajax(request)
     .then(
         r => {
             const data = {
                 token: r.key,
-                type: "AUTH::SET_TOKEN",
             };
             window.opener.postMessage(data, 'http://localhost:3000/');
             window.close();
         },
-        e => {
-            const data = {
-                type: "ERROR::RAISE",
-                msg: `Cannot log in. (Status code ${e.status})`,
-            };
-            window.opener.postMessage(data, 'http://localhost:3000/');
+        () => {
+            window.opener.postMessage({ error: 'failure' }, 'http://localhost:3000/');
             window.close();
         }
     );
-console.groupEnd();

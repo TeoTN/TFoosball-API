@@ -15,7 +15,6 @@ class CallbackView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
-        print(request.GET)
         context['access_token'] = request.GET.get('access_token')
         context['token_type'] = request.GET.get('token_type')
         context['expires_in'] = request.GET.get('expires_in')
@@ -30,3 +29,5 @@ class UserViewSet(ModelViewSet):
 class MatchViewSet(ModelViewSet):
     queryset = Match.objects.all()
     serializer_class = MatchSerializer
+
+
