@@ -42,6 +42,13 @@ class Match(models.Model):
         return int(K*G*(W-We))
 
     def save(self, *args, **kwargs):
-        if not self.points:
-            self.points = self.calculate_points()
+        self.points = self.calculate_points()
+        self.red_att.exp += self.points
+        self.red_att.save()
+        self.red_def.exp += self.points
+        self.red_def.save()
+        self.blue_att.exp -= self.points
+        self.blue_att.save()
+        self.blue_def.exp -= self.points
+        self.blue_def.save()
         super(Match, self).save(*args, **kwargs)
