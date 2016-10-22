@@ -174,3 +174,31 @@ CORS_ORIGIN_WHITELIST = (
     '127.0.0.1:3000',
     '127.0.0.1:8000',
 )
+
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(message)s'
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'matches.log'),
+            'formatter': 'verbose'
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'tfoosball.matches': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
+        }
+    },
+}

@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+import logging
+logger = logging.getLogger('tfoosball.matches')
 
 
 class Player(AbstractUser):
@@ -28,11 +30,15 @@ class Match(models.Model):
         """
         :return: The amount of points that red team should gain
         """
+        logger.debug('Adding match')
         K = int(self.status)
         G = (11+abs(self.red_score - self.blue_score)) / 8
         dr = ((self.red_att.exp + self.red_def.exp) - (self.blue_att.exp + self.red_att.exp))
         We = 1 / ((10 ** -(dr/400))+1)
         W = 1 if self.red_score > self.blue_score else 0
+        logger.debug('Params r: {0} b: {1} K: {2} G: {3} dr: {4} We: {5} W: {6} score={7}'.format(
+            self.red_score, self.blue_score, K, G, dr, We, W, int(K*G*(W-We))
+        ))
         return int(K*G*(W-We))
 
     def save(self, *args, **kwargs):
