@@ -1,8 +1,13 @@
 from rest_framework import serializers
-from .models import Player, Match
+from .models import Player, Match, ExpHistory
+from django.db.models import Avg
 
 
 class UserSerializer(serializers.ModelSerializer):
+    exp_history = serializers.SerializerMethodField()
+
+    def get_exp_history(self, obj):
+        return obj.exp_history.all().values('date').annotate(daily_avg=Avg('exp'))
 
     class Meta:
         model = Player
@@ -21,9 +26,9 @@ class UserSerializer(serializers.ModelSerializer):
             'curr_lose_streak',
             'curr_win_streak',
             'lowest_exp',
-            'highest_exp'
+            'highest_exp',
+            'exp_history',
         )
-
 
 
 class MatchSerializer(serializers.ModelSerializer):

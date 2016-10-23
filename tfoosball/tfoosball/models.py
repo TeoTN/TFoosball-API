@@ -94,5 +94,5 @@ class Match(models.Model):
 
 class ExpHistory(models.Model):
     player = models.ForeignKey(Player, related_name='exp_history')
-    date = models.DateTimeField(auto_now_add=True, blank=True)
+    date = models.DateField(auto_now_add=True, blank=True)
     exp = models.IntegerField()
