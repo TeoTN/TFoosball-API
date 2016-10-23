@@ -28,12 +28,12 @@ class Player(AbstractUser):
     def win_ratio(self):
         return (self.offence + self.defence)/self.played if self.played > 0 else 0
 
-        """
+    def update_extremes(self):
         self.win_streak = max(self.curr_win_streak, self.win_streak)
         self.lose_streak = max(self.curr_lose_streak, self.lose_streak)
         self.lowest_exp = min(self.lowest_exp, self.exp)
         self.highest_exp = max(self.highest_exp, self.exp)
-        """
+
 
     def after_match_update(self, points, is_winner, is_offence):
         self.exp += points
@@ -51,7 +51,10 @@ class Player(AbstractUser):
             self.curr_win_streak = 0 
             self.curr_lose_streak += 1
 
+        self.update_extremes()
+
         self.save()
+
 
 class Match(models.Model):
     red_att = models.ForeignKey(Player, related_name='red_att')
