@@ -6,9 +6,9 @@ logger = logging.getLogger('tfoosball.matches')
 
 class Player(AbstractUser):
     exp = models.IntegerField(blank=False, null=False, default=1000)
-    att_ratio = models.FloatField(default=0.0, db_column='att')
-    def_ratio = models.FloatField(default=0.0, db_column='def')
-    win_ratio = models.FloatField(default=0.0, db_column='win')
+    offence = models.IntegerField(default=0)
+    defence = models.IntegerField(default=0)
+    played = models.IntegerField(default=0) 
     win_streak = models.IntegerField(default=0)
     curr_win_streak = models.IntegerField(default=0)
     lose_streak = models.IntegerField(default=0)
@@ -16,6 +16,42 @@ class Player(AbstractUser):
     lowest_exp = models.IntegerField(default=1000)
     highest_exp = models.IntegerField(default=1000)
 
+    @property
+    def att_ratio(self):
+        return self.offence / self.played if self.played > 0 else 0
+
+    @property
+    def def_ratio(self):
+        return self.defence / self.played if self.played > 0 else 0
+    
+    @property
+    def win_ratio(self):
+        return (self.offence + self.defence)/self.played if self.played > 0 else 0
+
+        """
+        self.win_streak = max(self.curr_win_streak, self.win_streak)
+        self.lose_streak = max(self.curr_lose_streak, self.lose_streak)
+        self.lowest_exp = min(self.lowest_exp, self.exp)
+        self.highest_exp = max(self.highest_exp, self.exp)
+        """
+
+    def after_match_update(self, points, is_winner, is_offence):
+        self.exp += points
+        self.played += 1
+
+        if is_winner:
+            self.curr_win_streak += 1
+            self.curr_lose_streak = 0 
+
+            if is_offence:
+                self.offence += 1 
+            else:
+                self.defence += 1
+        else:
+            self.curr_win_streak = 0 
+            self.curr_lose_streak += 1
+
+        self.save()
 
 class Match(models.Model):
     red_att = models.ForeignKey(Player, related_name='red_att')
@@ -30,7 +66,7 @@ class Match(models.Model):
 
     def calculate_points(self):
         """
-        :return: The amount of points that red team should gain
+        :return: The amount of points that red team should gain and information whether read team won
         """
         logger.debug('Adding match')
         K = int(self.status)
@@ -41,18 +77,15 @@ class Match(models.Model):
         logger.debug('Params r: {0} b: {1} K: {2} G: {3} dr: {4} We: {5} W: {6} score={7}'.format(
             self.red_score, self.blue_score, K, G, dr, We, W, int(K*G*(W-We))
         ))
-        return int(K*G*(W-We))
-
+        return (int(K*G*(W-We)), self.red_score > self.blue_score)
+ 
     def save(self, *args, **kwargs):
-        self.points = self.calculate_points()
-        self.red_att.exp += self.points
-        self.red_att.save()
-        self.red_def.exp += self.points
-        self.red_def.save()
-        self.blue_att.exp -= self.points
-        self.blue_att.save()
-        self.blue_def.exp -= self.points
-        self.blue_def.save()
+        self.points, is_red_winner = self.calculate_points()
+        self.red_att.after_match_update(self.points, is_red_winner, True)
+        self.red_def.after_match_update(self.points, is_red_winner, False)
+        self.blue_att.after_match_update(-self.points, not is_red_winner, True)
+        self.blue_def.after_match_update(-self.points, not is_red_winner, False)
+
         super(Match, self).save(*args, **kwargs)
 
 

@@ -3,6 +3,7 @@ from .models import Player, Match
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Player
         fields = (
@@ -11,6 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'exp',
+            'played',
             'att_ratio',
             'def_ratio',
             'win_ratio',
@@ -21,6 +23,7 @@ class UserSerializer(serializers.ModelSerializer):
             'lowest_exp',
             'highest_exp'
         )
+
 
 
 class MatchSerializer(serializers.ModelSerializer):
