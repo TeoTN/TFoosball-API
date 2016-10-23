@@ -54,3 +54,9 @@ class Match(models.Model):
         self.blue_def.exp -= self.points
         self.blue_def.save()
         super(Match, self).save(*args, **kwargs)
+
+
+class ExpHistory(models.Model):
+    player = models.ForeignKey(Player, related_name='exp_history')
+    date = models.DateTimeField(auto_now_add=True, blank=True)
+    exp = models.IntegerField()
