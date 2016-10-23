@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Player, Match, ExpHistory
+from .models import Player, Match
 from django.db.models import Avg
 
 
