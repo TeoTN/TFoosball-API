@@ -34,7 +34,6 @@ class Player(AbstractUser):
         self.lowest_exp = min(self.lowest_exp, self.exp)
         self.highest_exp = max(self.highest_exp, self.exp)
 
-
     def after_match_update(self, points, is_winner, is_offence):
         self.exp += points
         self.played += 1
