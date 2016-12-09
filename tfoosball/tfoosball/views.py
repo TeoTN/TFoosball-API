@@ -24,6 +24,7 @@ class CallbackView(TemplateView):
 class UserViewSet(ModelViewSet):
     queryset = Player.objects.all()
     serializer_class = UserSerializer
+    lookup_field = 'username'
 
 
 class MatchViewSet(ModelViewSet):
