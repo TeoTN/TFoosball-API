@@ -9,3 +9,5 @@ python3-openid==3.0.10
 requests==2.11.1
 requests-oauthlib==0.7.0
 six==1.10.0
+gunicorn==19.6.0
+whitenoise==3.2.2
