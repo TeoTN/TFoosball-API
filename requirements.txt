@@ -1,15 +1,14 @@
 defusedxml==0.4.1
+dj-database-url==0.4.1
 Django==1.10.1
 django-allauth==0.27.0
 django-cors-headers==1.2.1
 django-rest-auth==0.8.1
 djangorestframework==3.4.7
+gunicorn==19.6.0
 oauthlib==2.0.0
+psycopg2==2.6.2
 python3-openid==3.0.10
 requests==2.11.1
 requests-oauthlib==0.7.0
 six==1.10.0
-gunicorn==19.6.0
-# whitenoise==3.2.2
-dj-database-url==0.4.1
-psycopg2==2.6.2
