@@ -22,10 +22,11 @@ DJANGO_APPS = [
     'django.contrib.sites',
 ]
 
-THIRD_PARTY_APPS = [
+OTHER_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
+    'tfoosball',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -33,11 +34,7 @@ THIRD_PARTY_APPS = [
     'rest_auth',
 ]
 
-LOCAL_APPS = [
-    'tfoosball',
-]
-
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+INSTALLED_APPS = DJANGO_APPS + OTHER_APPS
 
 # MIDDLEWARE CONFIGURATION
 # ------------------------------------------------------------------------------
