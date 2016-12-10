@@ -4,7 +4,7 @@ import dj_database_url
 
 
 SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
-DEBUG = False
+DEBUG = os.environ.get('DJANGO_DEBUG', False)
 ALLOWED_HOSTS = [
     'tfoosball-api.herokuapp.com',
     'tfoosball.herokuapp.com',
