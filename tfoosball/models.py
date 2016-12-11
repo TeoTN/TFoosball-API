@@ -70,10 +70,9 @@ class Match(models.Model):
         """
         :return: The amount of points that red team should gain and information whether read team won
         """
-        logger.debug('Adding match')
         K = int(self.status)
         G = (11+abs(self.red_score - self.blue_score)) / 8
-        dr = ((self.red_att.exp + self.red_def.exp) - (self.blue_att.exp + self.red_att.exp))
+        dr = ((self.red_att.exp + self.red_def.exp) - (self.blue_att.exp + self.blue_def.exp))
         We = 1 / ((10 ** -(dr/400))+1)
         W = 1 if self.red_score > self.blue_score else 0
         logger.debug('Params r: {0} b: {1} K: {2} G: {3} dr: {4} We: {5} W: {6} score={7}'.format(
@@ -82,6 +81,7 @@ class Match(models.Model):
         return (int(K*G*(W-We)), self.red_score > self.blue_score)
  
     def save(self, *args, **kwargs):
+        logger.debug('Adding match')
         self.points, is_red_winner = self.calculate_points()
         self.red_att.after_match_update(self.points, is_red_winner, True)
         self.red_def.after_match_update(self.points, is_red_winner, False)

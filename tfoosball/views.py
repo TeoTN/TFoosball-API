@@ -2,6 +2,8 @@ from django.views.generic import TemplateView
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from rest_auth.registration.views import SocialLoginView
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from .models import Player, Match
 from .serializers import UserSerializer, MatchSerializer
 import os
@@ -32,5 +34,22 @@ class UserViewSet(ModelViewSet):
 class MatchViewSet(ModelViewSet):
     queryset = Match.objects.all()
     serializer_class = MatchSerializer
+
+
+class CountPointsView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        data = {k+'_id': v for k, v in request.GET.items()}
+        match = Match(**data, red_score = 0, blue_score = 10)
+        try:
+            result1 = abs(match.calculate_points()[0])
+        except (Match.red_att.RelatedObjectDoesNotExist,
+                Match.red_def.RelatedObjectDoesNotExist,
+                Match.blue_att.RelatedObjectDoesNotExist,
+                Match.blue_def.RelatedObjectDoesNotExist):
+            return Response({'detail': 'Players have not been provided'}, status=406)
+        match = Match(**data, red_score = 10, blue_score = 0)
+        result2 = abs(match.calculate_points()[0])
+        return Response({'blue': result1, 'red': result2})
 
 
