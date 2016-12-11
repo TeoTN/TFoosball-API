@@ -4,6 +4,7 @@ from rest_auth.registration.views import SocialLoginView
 from rest_framework.viewsets import ModelViewSet
 from .models import Player, Match
 from .serializers import UserSerializer, MatchSerializer
+import os
 
 
 class GoogleLoginView(SocialLoginView):
@@ -18,6 +19,7 @@ class CallbackView(TemplateView):
         context['access_token'] = request.GET.get('access_token')
         context['token_type'] = request.GET.get('token_type')
         context['expires_in'] = request.GET.get('expires_in')
+        context['FRONTEND_CLIENT'] = os.environ.get('FRONTEND_CLIENT', 'http://localhost:3000/')
         return self.render_to_response(context)
 
 

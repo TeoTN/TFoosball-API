@@ -46,11 +46,11 @@ $.ajax(request)
             const data = {
                 token: r.key,
             };
-            window.opener.postMessage(data, 'http://localhost:3000/');
+            window.opener.postMessage(data, cb_params.FRONTEND_CLIENT);
             window.close();
         },
         () => {
-            window.opener.postMessage({ error: 'failure' }, 'http://localhost:3000/');
+            window.opener.postMessage({ error: 'failure' }, cb_params.FRONTEND_CLIENT);
             window.close();
         }
     );
