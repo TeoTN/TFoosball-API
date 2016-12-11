@@ -4,24 +4,10 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Example page</title>
+    <title>TFoosball-API</title>
     <link rel="stylesheet" href="{% static "styles.css" %}">
-    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
-            integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
-            crossorigin="anonymous">
-    </script>
-    <script src="{% static "index.js" %}"></script>
 </head>
 <body>
-    <h1>Example page</h1>
-    {% if user.is_authenticated %}
-        <div>
-            Logged in as {% user_display user %}
-            <button onclick="letmeout()">Let me out</button>
-        </div>
-    {% else %}
-        <button onclick="return popupwindow()">Let me in with Google</button>
-    {% endif %}
-
+<h1>TFoosball API</h1>
 </body>
 </html>
