@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.contrib.auth.models import AbstractUser
 import logging
 logger = logging.getLogger('tfoosball.matches')
@@ -53,6 +54,9 @@ class Player(AbstractUser):
         self.update_extremes()
 
         self.save()
+
+    def get_latest_matches(self, number=7):
+        return Match.objects.all().filter(Q(red_att=self.id)|Q(red_def=self.id)|Q(blue_att=self.id)|Q(blue_def=self.id)).order_by('-date')[:int(number)]
 
 
 class Match(models.Model):

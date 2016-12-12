@@ -38,7 +38,6 @@ class MatchViewSet(ModelViewSet):
 
 
 class CountPointsView(APIView):
-
     def get(self, request, *args, **kwargs):
         data = {k+'_id': v for k, v in request.GET.items()}
         match = Match(**data, red_score = 0, blue_score = 10)
@@ -54,3 +53,10 @@ class CountPointsView(APIView):
         return Response({'blue': result1, 'red': result2})
 
 
+class UserLatestMatchesView(APIView):
+    def get(self, request, *args, **kwargs):
+        user = Player.objects.get(username=kwargs['username'])
+        num = request.GET.get('number', 7)
+
+        serializer = MatchSerializer(instance=user.get_latest_matches(num), many=True)
+        return Response(serializer.data)
