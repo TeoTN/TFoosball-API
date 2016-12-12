@@ -10,7 +10,7 @@ class Command(BaseCommand):
         users = list(Player.objects.all())
         if len(users) < 4:
             raise ValueError("Not enough players")
-        for _ in range(number):
+        for _ in range(int(number)):
             shuffle(users)
             red_score = randint(0, 10)
             blue_score = 10 if red_score != 10 else randint(0, 10)
