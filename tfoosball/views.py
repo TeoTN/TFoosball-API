@@ -29,6 +29,7 @@ class UserViewSet(ModelViewSet):
     queryset = Player.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
+    lookup_value_regex = '[A-Za-z0-9_\-\.]+'
 
 
 class MatchViewSet(ModelViewSet):
