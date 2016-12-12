@@ -1,12 +1,12 @@
 from django.core.management.base import BaseCommand
 from tfoosball.models import Player
-import users
+import json
 
 
 class Command(BaseCommand):
     help = 'Populates db with users from tfoosball/fixtures/users.json'
 
-    def upload_users():
+    def upload_users(self):
         with open('tfoosball/fixtures/users.json', 'r') as fh:
              users = json.load(fh)
 
