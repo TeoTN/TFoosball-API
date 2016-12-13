@@ -5,6 +5,8 @@ SECRET_KEY = '7d!g5l*3nm1=2s@&%11d+jz_$#ii2bugj+9ynhq&cfl0r%pnn)'
 DEBUG = True
 ALLOWED_HOSTS = []
 
+WSGI_APPLICATION = 'ws4redis.django_runserver.application'
+
 # DATABASE
 # ------------------------------------------------------------------------------
 

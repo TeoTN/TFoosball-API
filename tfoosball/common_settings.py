@@ -31,6 +31,7 @@ OTHER_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'rest_auth',
+    'ws4redis',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + OTHER_APPS
@@ -71,6 +72,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'ws4redis.context_processors.default',
             ],
         },
     },
@@ -115,3 +117,5 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     )
 }
+
+WEBSOCKET_URL = '/ws/'
