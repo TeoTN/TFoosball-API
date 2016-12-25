@@ -50,7 +50,7 @@ $.ajax(request)
             window.close();
         },
         () => {
-            window.opener.postMessage({ error: 'failure' }, cb_params.FRONTEND_CLIENT);
+            window.opener.postMessage('failure', cb_params.FRONTEND_CLIENT);
             window.close();
         }
     );
