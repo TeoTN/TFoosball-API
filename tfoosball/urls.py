@@ -22,7 +22,7 @@ urlpatterns = [
     url(r'^rest-auth/google/$', GoogleLoginView.as_view(), name='g_login'),
     url(r'^auth/callback/?$', CallbackView.as_view(), name='auth_callback'),
     url(r'^api/matches/count-points/?$', CountPointsView.as_view(), name='count_points'),
-    url(r'^api/users/(?P<username>\w+)/matches/?$', UserLatestMatchesView.as_view(), name='user_matches'),
+    url(r'^api/users/(?P<username>[A-Za-z0-9_\-\.]+)/matches/?$', UserLatestMatchesView.as_view(), name='user_matches'),
     url(r'^api/', include(router.urls, namespace='api')),
     url(r'^$', TemplateView.as_view(template_name='index.html'), name='index'),
 ]
