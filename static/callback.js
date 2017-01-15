@@ -47,10 +47,10 @@ $.ajax(request)
                 token: r.key,
             };
             window.opener.postMessage(data, cb_params.FRONTEND_CLIENT);
-            // setTimeout(() => window.close(), 100);
+            setTimeout(() => window.close(), 100);
         },
         () => {
             window.opener.postMessage('failure', cb_params.FRONTEND_CLIENT);
-            // setTimeout(() => window.close(), 100);
+            setTimeout(() => window.close(), 100);
         }
     );
