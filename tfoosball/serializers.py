@@ -40,4 +40,7 @@ class MatchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Match
-        fields = ('red_att', 'red_def', 'blue_att', 'blue_def', 'date', 'red_score', 'blue_score', 'points')
+        fields = (
+            'id', 'red_att', 'red_def', 'blue_att', 'blue_def', 'date',
+            'red_score', 'blue_score', 'points'
+        )

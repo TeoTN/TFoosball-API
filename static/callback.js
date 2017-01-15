@@ -46,11 +46,13 @@ $.ajax(request)
             const data = {
                 token: r.key,
             };
+            console.log(window.opener);
             window.opener.postMessage(data, cb_params.FRONTEND_CLIENT);
             window.close();
         },
         () => {
             window.opener.postMessage('failure', cb_params.FRONTEND_CLIENT);
+            console.log('failured', window.opener);
             window.close();
         }
     );
