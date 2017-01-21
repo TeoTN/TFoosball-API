@@ -32,8 +32,15 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MatchSerializer(serializers.ModelSerializer):
+    red_att = serializers.SlugRelatedField(slug_field='username', queryset=Player.objects.all())
+    red_def = serializers.SlugRelatedField(slug_field='username', queryset=Player.objects.all())
+    blue_att = serializers.SlugRelatedField(slug_field='username', queryset=Player.objects.all())
+    blue_def = serializers.SlugRelatedField(slug_field='username', queryset=Player.objects.all())
     points = serializers.IntegerField(required=False)
 
     class Meta:
         model = Match
-        fields = ('red_att', 'red_def', 'blue_att', 'blue_def', 'date', 'red_score', 'blue_score', 'points')
+        fields = (
+            'id', 'red_att', 'red_def', 'blue_att', 'blue_def', 'date',
+            'red_score', 'blue_score', 'points'
+        )

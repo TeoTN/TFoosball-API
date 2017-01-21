@@ -35,6 +35,7 @@ class UserViewSet(ModelViewSet):
 class MatchViewSet(ModelViewSet):
     queryset = Match.objects.all()
     serializer_class = MatchSerializer
+    allowed_methods = [u'GET', u'POST', u'PUT', u'PATCH', u'DELETE', u'OPTIONS']
 
 
 class CountPointsView(APIView):
