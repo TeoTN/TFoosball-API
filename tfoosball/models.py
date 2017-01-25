@@ -18,16 +18,24 @@ class Player(AbstractUser):
     highest_exp = models.IntegerField(default=1000)
 
     @property
+    def won(self):
+        return self.offence + self.defence
+
+    @property
+    def lost(self):
+        return self.played - self.won
+
+    @property
     def att_ratio(self):
-        return round(self.offence / self.played if self.played > 0 else 0, 2)
+        return round(self.offence / self.won if self.won > 0 else 0, 2)
 
     @property
     def def_ratio(self):
-        return round(self.defence / self.played if self.played > 0 else 0, 2)
+        return round(self.defence / self.won if self.won > 0 else 0, 2)
     
     @property
     def win_ratio(self):
-        return round((self.offence + self.defence)/self.played if self.played > 0 else 0, 2)
+        return round(self.won / self.played if self.played > 0 else 0, 2)
 
     def update_extremes(self):
         self.win_streak = max(self.curr_win_streak, self.win_streak)
