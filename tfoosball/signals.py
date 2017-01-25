@@ -1,11 +1,14 @@
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from .models import Player, ExpHistory, Match
 
 
-@receiver(post_save, sender=Player)
+@receiver(post_save, sender=Match)
 def store_exp_history(sender, instance, *args, **kwargs):
-    ExpHistory.objects.create(player=instance, exp=instance.exp)
+    ExpHistory.objects.create(player=instance.red_att, exp=instance.red_att.exp, match=instance)
+    ExpHistory.objects.create(player=instance.red_def, exp=instance.red_def.exp, match=instance)
+    ExpHistory.objects.create(player=instance.blue_def, exp=instance.blue_def.exp, match=instance)
+    ExpHistory.objects.create(player=instance.blue_att, exp=instance.blue_att.exp, match=instance)
 
 
 @receiver(post_delete, sender=Match)

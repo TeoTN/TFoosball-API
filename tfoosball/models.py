@@ -93,7 +93,7 @@ class Match(models.Model):
         return (int(K*G*(W-We)), self.red_score > self.blue_score)
  
     def save(self, *args, **kwargs):
-        logger.debug('Adding match')
+        # logger.debug('Adding match')
         self.points, is_red_winner = self.calculate_points()
         self.red_att.after_match_update(self.points, is_red_winner, True)
         self.red_def.after_match_update(self.points, is_red_winner, False)
@@ -104,6 +104,7 @@ class Match(models.Model):
 
 
 class ExpHistory(models.Model):
-    player = models.ForeignKey(Player, related_name='exp_history')
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='exp_history')
     date = models.DateField(auto_now_add=True, blank=True)
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='exp_history', blank=True, null=True)
     exp = models.IntegerField()
