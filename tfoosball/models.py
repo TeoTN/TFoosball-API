@@ -19,15 +19,15 @@ class Player(AbstractUser):
 
     @property
     def att_ratio(self):
-        return self.offence / self.played if self.played > 0 else 0
+        return round(self.offence / self.played if self.played > 0 else 0, 2)
 
     @property
     def def_ratio(self):
-        return self.defence / self.played if self.played > 0 else 0
+        return round(self.defence / self.played if self.played > 0 else 0, 2)
     
     @property
     def win_ratio(self):
-        return (self.offence + self.defence)/self.played if self.played > 0 else 0
+        return round((self.offence + self.defence)/self.played if self.played > 0 else 0, 2)
 
     def update_extremes(self):
         self.win_streak = max(self.curr_win_streak, self.win_streak)
