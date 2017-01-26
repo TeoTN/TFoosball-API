@@ -36,7 +36,14 @@ class APITests(TestCase):
         player4.save()
 
         factory = APIRequestFactory()
-        request = factory.post('/matches/', {'red_att': player1.id, 'red_def': player2.id, 'blue_att': player3.id, 'blue_def': player4.id, 'red_score': 10, 'blue_score': 1})
+        request = factory.post('/matches/', {
+            'red_att': player1.username,
+            'red_def': player2.username,
+            'blue_att': player3.username,
+            'blue_def': player4.username,
+            'red_score': 10,
+            'blue_score': 1
+        })
         request.user = player1
 
         view = MatchViewSet.as_view({"post": "create"})

@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models import Q
 from django.contrib.auth.models import AbstractUser
 import logging
-logger = logging.getLogger('tfoosball.matches')
+# logger = logging.getLogger('tfoosball.matches')
 
 
 class Player(AbstractUser):
@@ -18,16 +18,24 @@ class Player(AbstractUser):
     highest_exp = models.IntegerField(default=1000)
 
     @property
+    def won(self):
+        return self.offence + self.defence
+
+    @property
+    def lost(self):
+        return self.played - self.won
+
+    @property
     def att_ratio(self):
-        return round(self.offence / self.played if self.played > 0 else 0, 2)
+        return round(self.offence / self.won if self.won > 0 else 0, 2)
 
     @property
     def def_ratio(self):
-        return round(self.defence / self.played if self.played > 0 else 0, 2)
+        return round(self.defence / self.won if self.won > 0 else 0, 2)
     
     @property
     def win_ratio(self):
-        return round((self.offence + self.defence)/self.played if self.played > 0 else 0, 2)
+        return round(self.won / self.played if self.played > 0 else 0, 2)
 
     def update_extremes(self):
         self.win_streak = max(self.curr_win_streak, self.win_streak)
@@ -79,13 +87,13 @@ class Match(models.Model):
         dr = ((self.red_att.exp + self.red_def.exp) - (self.blue_att.exp + self.blue_def.exp))
         We = 1 / ((10 ** -(dr/400))+1)
         W = 1 if self.red_score > self.blue_score else 0
-        logger.debug('Params r: {0} b: {1} K: {2} G: {3} dr: {4} We: {5} W: {6} score={7}'.format(
-            self.red_score, self.blue_score, K, G, dr, We, W, int(K*G*(W-We))
-        ))
+        # logger.debug('Params r: {0} b: {1} K: {2} G: {3} dr: {4} We: {5} W: {6} score={7}'.format(
+        #     self.red_score, self.blue_score, K, G, dr, We, W, int(K*G*(W-We))
+        # ))
         return (int(K*G*(W-We)), self.red_score > self.blue_score)
  
     def save(self, *args, **kwargs):
-        logger.debug('Adding match')
+        # logger.debug('Adding match')
         self.points, is_red_winner = self.calculate_points()
         self.red_att.after_match_update(self.points, is_red_winner, True)
         self.red_def.after_match_update(self.points, is_red_winner, False)
@@ -96,6 +104,7 @@ class Match(models.Model):
 
 
 class ExpHistory(models.Model):
-    player = models.ForeignKey(Player, related_name='exp_history')
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='exp_history')
     date = models.DateField(auto_now_add=True, blank=True)
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='exp_history', blank=True, null=True)
     exp = models.IntegerField()
