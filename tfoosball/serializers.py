@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Player, Match
-from django.db.models import Avg, Func
+from django.db.models import Avg, Func, Count
 
 
 class Round(Func):
@@ -12,7 +12,11 @@ class UserSerializer(serializers.ModelSerializer):
     exp_history = serializers.SerializerMethodField()
 
     def get_exp_history(self, obj):
-        return obj.exp_history.all().values('date').annotate(daily_avg=Round(Avg('exp'))).order_by('date')
+        return obj.exp_history.all()\
+            .values('date')\
+            .annotate(daily_avg=Round(Avg('exp')))\
+            .annotate(amount=Count('exp'))\
+            .order_by('date')
 
     class Meta:
         model = Player

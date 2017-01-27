@@ -6,7 +6,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Player, Match
 from .serializers import UserSerializer, MatchSerializer
+from rest_framework.pagination import PageNumberPagination
 import os
+
+
+class StandardPagination(PageNumberPagination):
+    page_size = 15
+    page_size_query_param = 'page_size'
+    max_page_size = 50
 
 
 class GoogleLoginView(SocialLoginView):
@@ -36,6 +43,13 @@ class MatchViewSet(ModelViewSet):
     queryset = Match.objects.all()
     serializer_class = MatchSerializer
     allowed_methods = [u'GET', u'POST', u'PUT', u'PATCH', u'DELETE', u'OPTIONS']
+    pagination_class = StandardPagination
+
+    def list(self, request, *args, **kwargs):
+        response = super(MatchViewSet, self).list(request, args, kwargs)
+        response.data['page'] = request.GET.get('page', 1)
+        response.data['page_size'] = request.GET.get('page_size', 15)
+        return response
 
 
 class CountPointsView(APIView):
