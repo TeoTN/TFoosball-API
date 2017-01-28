@@ -10,7 +10,10 @@ class Command(BaseCommand):
 
     def init_history(self):
         for player in Player.objects.all():
-            ExpHistory(player=player, date=player.date_joined, exp=1000).save()
+            eh = ExpHistory(player=player, exp=1000)
+            eh.save()
+            eh.date = player.date_joined
+            eh.save()
             player.exp = 1000
             player.save()
 
@@ -21,28 +24,28 @@ class Command(BaseCommand):
         for match in Match.objects.all().order_by('date'):
             match.red_att.exp += get_points(match, 'red')
             match.red_att.save()
-            eh = ExpHistory(player=match.red_att, date=match.date, exp=match.red_att.exp, match=match)
+            eh = ExpHistory(player=match.red_att, exp=match.red_att.exp, match=match)
             eh.save()
             eh.date = match.date
             eh.save()
 
             match.red_def.exp += get_points(match, 'red')
             match.red_def.save()
-            eh = ExpHistory(player=match.red_def, date=match.date, exp=match.red_def.exp, match=match)
+            eh = ExpHistory(player=match.red_def, exp=match.red_def.exp, match=match)
             eh.save()
             eh.date = match.date
             eh.save()
 
             match.blue_att.exp += get_points(match, 'blue')
             match.blue_att.save()
-            eh = ExpHistory(player=match.blue_att, date=match.date, exp=match.blue_att.exp, match=match)
+            eh = ExpHistory(player=match.blue_att, exp=match.blue_att.exp, match=match)
             eh.save()
             eh.date = match.date
             eh.save()
 
             match.blue_def.exp += get_points(match, 'blue')
             match.blue_def.save()
-            eh = ExpHistory(player=match.blue_def, date=match.date, exp=match.blue_def.exp, match=match)
+            eh = ExpHistory(player=match.blue_def, exp=match.blue_def.exp, match=match)
             eh.save()
             eh.date = match.date
             eh.save()
