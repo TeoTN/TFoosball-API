@@ -16,10 +16,7 @@ class Command(BaseCommand):
 
     def create_history(self):
         def get_points(match, role):
-            if role == 'red':
-                return match.points if match.red_score > match.blue_score else -match.points
-            elif role == 'blue':
-                return match.points if match.blue_score > match.red_score else -match.points
+            return match.points if role == 'red' else -match.points
 
         for match in Match.objects.all().order_by('date'):
             match.red_att.exp += get_points(match, 'red')
