@@ -63,8 +63,10 @@ class Player(AbstractUser):
 
         self.save()
 
-    def get_latest_matches(self, number=7):
-        return Match.objects.all().filter(Q(red_att=self.id)|Q(red_def=self.id)|Q(blue_att=self.id)|Q(blue_def=self.id)).order_by('-date')[:int(number)]
+    def get_latest_matches(self):
+        return Match.objects.all()\
+            .filter(Q(red_att=self.id) | Q(red_def=self.id) | Q(blue_att=self.id) | Q(blue_def=self.id))\
+            .order_by('-date')
 
 
 class Match(models.Model):

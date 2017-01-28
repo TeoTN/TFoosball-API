@@ -3,6 +3,7 @@ from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from rest_auth.registration.views import SocialLoginView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from .models import Player, Match
 from .serializers import UserSerializer, MatchSerializer
@@ -11,7 +12,7 @@ import os
 
 
 class StandardPagination(PageNumberPagination):
-    page_size = 15
+    page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 50
 
@@ -48,7 +49,7 @@ class MatchViewSet(ModelViewSet):
     def list(self, request, *args, **kwargs):
         response = super(MatchViewSet, self).list(request, args, kwargs)
         response.data['page'] = request.GET.get('page', 1)
-        response.data['page_size'] = request.GET.get('page_size', 15)
+        response.data['page_size'] = request.GET.get('page_size', StandardPagination.page_size)
         return response
 
 
@@ -68,10 +69,18 @@ class CountPointsView(APIView):
         return Response({'blue': result1, 'red': result2})
 
 
-class UserLatestMatchesView(APIView):
-    def get(self, request, *args, **kwargs):
-        user = Player.objects.get(username=kwargs['username'])
-        num = request.GET.get('number', 7)
+class UserLatestMatchesView(ListAPIView):
+    pagination_class = StandardPagination
+    serializer_class = MatchSerializer
+    allowed_methods = [u'GET', u'OPTIONS']
 
-        serializer = MatchSerializer(instance=user.get_latest_matches(num), many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        username = self.kwargs['username']
+        user = Player.objects.get(username=username)
+        return user.get_latest_matches()
+
+    def list(self, request, *args, **kwargs):
+        response = super(UserLatestMatchesView, self).list(request, args, kwargs)
+        response.data['page'] = request.GET.get('page', 1)
+        response.data['page_size'] = request.GET.get('page_size', StandardPagination.page_size)
+        return response
