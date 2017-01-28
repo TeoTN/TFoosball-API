@@ -12,10 +12,10 @@ class UserSerializer(serializers.ModelSerializer):
     exp_history = serializers.SerializerMethodField()
 
     def get_exp_history(self, obj):
-        return obj.exp_history.all()\
+        return obj.exp_history.all() \
             .values('date')\
             .annotate(daily_avg=Round(Avg('exp')))\
-            .annotate(amount=Count('exp'))\
+            .annotate(amount=Count('date'))\
             .order_by('date')
 
     class Meta:
@@ -23,6 +23,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'username',
+            'email',
             'first_name',
             'last_name',
             'exp',
