@@ -34,7 +34,7 @@ class CallbackView(TemplateView):
 
 
 class UserViewSet(ModelViewSet):
-    queryset = Player.objects.all()
+    queryset = Player.objects.filter(hidden=False)
     serializer_class = UserSerializer
     lookup_field = 'username'
     lookup_value_regex = '[A-Za-z0-9_\-\.]+'

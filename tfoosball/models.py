@@ -16,6 +16,7 @@ class Player(AbstractUser):
     curr_lose_streak = models.IntegerField(default=0)
     lowest_exp = models.IntegerField(default=1000)
     highest_exp = models.IntegerField(default=1000)
+    hidden = models.BooleanField(default=False)
 
     @property
     def won(self):
