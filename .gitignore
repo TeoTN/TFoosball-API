@@ -92,4 +92,6 @@ ENV/
 .idea
 
 # Database
-# db.sqlite3
+# tfoosball/db.sqlite3
+dump.rdb
+
