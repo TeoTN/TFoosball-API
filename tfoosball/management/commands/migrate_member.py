@@ -21,11 +21,11 @@ class Command(BaseCommand):
     def migrate_players(self):
         players = Player.objects.all()
         fields = ['exp', 'offence', 'defence', 'played', 'win_streak', 'curr_win_streak',
-                  'lose_streak', 'curr_lose_streak', 'lowest_exp', 'highest_exp', 'username']
+                  'lose_streak', 'curr_lose_streak', 'lowest_exp', 'highest_exp']
 
         for player in players:
             data = model_to_dict(player, fields=fields)
-            Member.objects.create(**data, team=self.team, player=player)
+            Member.objects.create(**data, team=self.team, player=player, username=player.username[:14])
 
     def handle(self, *args, **options):
         self.team = self.create_team(options['teamname'])
