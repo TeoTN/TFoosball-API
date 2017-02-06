@@ -130,6 +130,9 @@ class Member(models.Model):
     lowest_exp = models.IntegerField(default=1000)
     highest_exp = models.IntegerField(default=1000)
 
+    def __str__(self):
+        return self.username
+
     def get_latest_matches(self):
         latest = Match.objects.all()
         latest = latest.filter(Q(red_att=self.id) | Q(red_def=self.id) | Q(blue_att=self.id) | Q(blue_def=self.id))
