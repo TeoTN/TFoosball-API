@@ -79,7 +79,7 @@ class Player(AbstractUser):
         self.save()
 
     def get_latest_matches(self):
-        return Match.objects.all() \
+        return MatchLegacy.objects.all() \
             .filter(Q(red_att=self.id) | Q(red_def=self.id) | Q(blue_att=self.id) | Q(blue_def=self.id)) \
             .order_by('-date')
 
@@ -134,7 +134,7 @@ class Member(models.Model):
         return self.username
 
     def get_latest_matches(self):
-        latest = Match.objects.all()
+        latest = MatchLegacy.objects.all()
         latest = latest.filter(Q(red_att=self.id) | Q(red_def=self.id) | Q(blue_att=self.id) | Q(blue_def=self.id))
         latest = latest.order_by('-date')
         return latest
@@ -164,7 +164,7 @@ class Member(models.Model):
         self.save()
 
 
-class Match(models.Model):
+class MatchLegacy(models.Model):
     red_att = models.ForeignKey(Player, related_name='red_att')
     red_def = models.ForeignKey(Player, related_name='red_def')
     blue_att = models.ForeignKey(Player, related_name='blue_att')
@@ -192,11 +192,18 @@ class Match(models.Model):
         self.red_def.after_match_update(self.points, is_red_winner, False)
         self.blue_att.after_match_update(-self.points, not is_red_winner, True)
         self.blue_def.after_match_update(-self.points, not is_red_winner, False)
-        super(Match, self).save(*args, **kwargs)
+        super(MatchLegacy, self).save(*args, **kwargs)
+
+
+class ExpHistoryLegacy(models.Model):
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='exp_history_legacy')
+    date = models.DateField(auto_now_add=True, blank=True)
+    match = models.ForeignKey(MatchLegacy, on_delete=models.CASCADE, related_name='exp_history_legacy', blank=True, null=True)
+    exp = models.IntegerField()
 
 
 class ExpHistory(models.Model):
-    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='exp_history')
+    player = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='exp_history')
     date = models.DateField(auto_now_add=True, blank=True)
-    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='exp_history', blank=True, null=True)
+    match = models.ForeignKey(MatchLegacy, on_delete=models.CASCADE, related_name='exp_history', blank=True, null=True)
     exp = models.IntegerField()

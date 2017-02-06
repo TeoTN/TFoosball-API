@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Player, Match
+from .models import Player, MatchLegacy
 from django.db.models import Avg, Func, Count
 
 
@@ -12,7 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
     exp_history = serializers.SerializerMethodField()
 
     def get_exp_history(self, obj):
-        return obj.exp_history.all() \
+        return obj.exp_history_legacy.all() \
             .values('date')\
             .annotate(daily_avg=Round(Avg('exp')))\
             .annotate(amount=Count('date'))\
@@ -49,7 +49,7 @@ class MatchSerializer(serializers.ModelSerializer):
     points = serializers.IntegerField(required=False)
 
     class Meta:
-        model = Match
+        model = MatchLegacy
         fields = (
             'id', 'red_att', 'red_def', 'blue_att', 'blue_def', 'date',
             'red_score', 'blue_score', 'points'
