@@ -26,6 +26,7 @@ OTHER_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'tfoosball',
+    'api',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -45,7 +46,6 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 # GENERAL CONFIGURATION
@@ -94,7 +94,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 REST_SESSION_LOGIN = True
 REST_AUTH_SERIALIZERS = {
-    'USER_DETAILS_SERIALIZER': 'tfoosball.serializers.UserSerializer',
+    'USER_DETAILS_SERIALIZER': 'api.serializers.UserSerializer',
 }
 ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_EMAIL_REQUIRED = True

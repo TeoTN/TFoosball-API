@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Player, MatchLegacy
+from tfoosball.models import Player, MatchLegacy, Team, Member, Match
 from django.db.models import Avg, Func, Count
 
 
@@ -9,17 +9,38 @@ class Round(Func):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Player
+        fields = ('id', 'email', 'first_name', 'last_name',)
+
+
+class MemberSerializer(serializers.ModelSerializer):
     exp_history = serializers.SerializerMethodField()
+    att_ratio = serializers.SerializerMethodField()
+    def_ratio = serializers.SerializerMethodField()
+    win_ratio = serializers.SerializerMethodField()
+    email = serializers.CharField(source='player.email', read_only=True)
+    first_name = serializers.CharField(source='player.first_name', read_only=True)
+    last_name = serializers.CharField(source='player.last_name', read_only=True)
+
+    def get_att_ratio(self, obj):
+        return obj.att_ratio
+
+    def get_def_ratio(self, obj):
+        return obj.def_ratio
+
+    def get_win_ratio(self, obj):
+        return obj.win_ratio
 
     def get_exp_history(self, obj):
-        return obj.exp_history_legacy.all() \
+        return obj.exp_history.all() \
             .values('date')\
             .annotate(daily_avg=Round(Avg('exp')))\
             .annotate(amount=Count('date'))\
             .order_by('date')
 
     class Meta:
-        model = Player
+        model = Member
         fields = (
             'id',
             'username',

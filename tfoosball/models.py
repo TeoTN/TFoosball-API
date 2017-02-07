@@ -11,7 +11,7 @@ class Round(Func):
 
 
 class Team(models.Model):
-    alphanumeric = RegexValidator(r'^[0-9a-zA-Z]*$', 'Only alphanumeric characters are allowed.')
+    alphanumeric = RegexValidator(r'^[0-9a-zA-Z]+$', 'Only alphanumeric characters are allowed.')
     name = models.CharField(max_length=32, unique=True)
     domain = models.CharField(max_length=32, unique=True, validators=[alphanumeric])
 
@@ -134,7 +134,7 @@ class Member(models.Model):
         return self.username
 
     def get_latest_matches(self):
-        latest = MatchLegacy.objects.all()
+        latest = Match.objects.all()
         latest = latest.filter(Q(red_att=self.id) | Q(red_def=self.id) | Q(blue_att=self.id) | Q(blue_def=self.id))
         latest = latest.order_by('-date')
         return latest
@@ -165,10 +165,10 @@ class Member(models.Model):
 
 
 class MatchLegacy(models.Model):
-    red_att = models.ForeignKey(Player, related_name='red_att')
-    red_def = models.ForeignKey(Player, related_name='red_def')
-    blue_att = models.ForeignKey(Player, related_name='blue_att')
-    blue_def = models.ForeignKey(Player, related_name='blue_def')
+    red_att = models.ForeignKey(Player, related_name='red_att', db_index=False)
+    red_def = models.ForeignKey(Player, related_name='red_def', db_index=False)
+    blue_att = models.ForeignKey(Player, related_name='blue_att', db_index=False)
+    blue_def = models.ForeignKey(Player, related_name='blue_def', db_index=False)
     date = models.DateTimeField(auto_now_add=True, blank=True)
     red_score = models.IntegerField()
     blue_score = models.IntegerField()
@@ -216,14 +216,15 @@ class Match(models.Model):
         We = 1 / ((10 ** -(dr / 400)) + 1)
         W = 1 if self.red_score > self.blue_score else 0
         return int(K * G * (W - We)), self.red_score > self.blue_score
-    #
-    # def save(self, *args, **kwargs):
-    #     self.points, is_red_winner = self.calculate_points()
-    #     self.red_att.after_match_update(self.points, is_red_winner, True)
-    #     self.red_def.after_match_update(self.points, is_red_winner, False)
-    #     self.blue_att.after_match_update(-self.points, not is_red_winner, True)
-    #     self.blue_def.after_match_update(-self.points, not is_red_winner, False)
-    #     super(Match, self).save(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        self.points, is_red_winner = self.calculate_points()
+        self.red_att.after_match_update(self.points, is_red_winner, True)
+        self.red_def.after_match_update(self.points, is_red_winner, False)
+        self.blue_att.after_match_update(-self.points, not is_red_winner, True)
+        self.blue_def.after_match_update(-self.points, not is_red_winner, False)
+        super(Match, self).save(*args, **kwargs)
+
 
 class ExpHistoryLegacy(models.Model):
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='exp_history_legacy')
@@ -235,5 +236,5 @@ class ExpHistoryLegacy(models.Model):
 class ExpHistory(models.Model):
     player = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='exp_history')
     date = models.DateField(auto_now_add=True, blank=True)
-    match = models.ForeignKey(MatchLegacy, on_delete=models.CASCADE, related_name='exp_history', blank=True, null=True)
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='exp_history', blank=True, null=True)
     exp = models.IntegerField()
