@@ -195,6 +195,36 @@ class MatchLegacy(models.Model):
         super(MatchLegacy, self).save(*args, **kwargs)
 
 
+class Match(models.Model):
+    red_att = models.ForeignKey(Member, related_name='red_att')
+    red_def = models.ForeignKey(Member, related_name='red_def')
+    blue_att = models.ForeignKey(Member, related_name='blue_att')
+    blue_def = models.ForeignKey(Member, related_name='blue_def')
+    date = models.DateTimeField(auto_now_add=True, blank=True)
+    red_score = models.IntegerField()
+    blue_score = models.IntegerField()
+    points = models.IntegerField()
+    status = models.IntegerField(default=20)
+
+    def calculate_points(self):
+        """
+        :return: The amount of points that red team should gain and information whether red team won
+        """
+        K = int(self.status)
+        G = (11 + abs(self.red_score - self.blue_score)) / 8
+        dr = ((self.red_att.exp + self.red_def.exp) - (self.blue_att.exp + self.blue_def.exp))
+        We = 1 / ((10 ** -(dr / 400)) + 1)
+        W = 1 if self.red_score > self.blue_score else 0
+        return int(K * G * (W - We)), self.red_score > self.blue_score
+    #
+    # def save(self, *args, **kwargs):
+    #     self.points, is_red_winner = self.calculate_points()
+    #     self.red_att.after_match_update(self.points, is_red_winner, True)
+    #     self.red_def.after_match_update(self.points, is_red_winner, False)
+    #     self.blue_att.after_match_update(-self.points, not is_red_winner, True)
+    #     self.blue_def.after_match_update(-self.points, not is_red_winner, False)
+    #     super(Match, self).save(*args, **kwargs)
+
 class ExpHistoryLegacy(models.Model):
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='exp_history_legacy')
     date = models.DateField(auto_now_add=True, blank=True)

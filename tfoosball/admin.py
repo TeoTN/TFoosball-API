@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Player, MatchLegacy, ExpHistoryLegacy, Team, Member, ExpHistory
+from .models import Player, MatchLegacy, ExpHistoryLegacy, Team, Member, ExpHistory, Match
 
 
 class ExpHistoryAdmin(admin.ModelAdmin):
@@ -13,6 +13,7 @@ class TeamAdmin(admin.ModelAdmin):
     list_display = ('name', 'domain',)
 
 admin.site.register(Player)
+admin.site.register(Match)
 admin.site.register(MatchLegacy)
 admin.site.register(Member)
 admin.site.register(Team, TeamAdmin)
