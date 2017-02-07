@@ -9,9 +9,17 @@ class Round(Func):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    username = serializers.SerializerMethodField()
+
+    def get_username(self, obj):
+        view = self.context['view']
+        team_domain = view.kwargs['team']
+        member = Member.objects.get(player=obj, team__domain=team_domain)
+        return member.username
+
     class Meta:
         model = Player
-        fields = ('id', 'email', 'first_name', 'last_name',)
+        fields = ('id', 'username', 'email', 'first_name', 'last_name',)
 
 
 class MemberSerializer(serializers.ModelSerializer):
@@ -63,14 +71,14 @@ class MemberSerializer(serializers.ModelSerializer):
 
 
 class MatchSerializer(serializers.ModelSerializer):
-    red_att = serializers.SlugRelatedField(slug_field='username', queryset=Player.objects.all())
-    red_def = serializers.SlugRelatedField(slug_field='username', queryset=Player.objects.all())
-    blue_att = serializers.SlugRelatedField(slug_field='username', queryset=Player.objects.all())
-    blue_def = serializers.SlugRelatedField(slug_field='username', queryset=Player.objects.all())
+    red_att = serializers.SlugRelatedField(slug_field='username', queryset=Member.objects.all())
+    red_def = serializers.SlugRelatedField(slug_field='username', queryset=Member.objects.all())
+    blue_att = serializers.SlugRelatedField(slug_field='username', queryset=Member.objects.all())
+    blue_def = serializers.SlugRelatedField(slug_field='username', queryset=Member.objects.all())
     points = serializers.IntegerField(required=False)
 
     class Meta:
-        model = MatchLegacy
+        model = Match
         fields = (
             'id', 'red_att', 'red_def', 'blue_att', 'blue_def', 'date',
             'red_score', 'blue_score', 'points'

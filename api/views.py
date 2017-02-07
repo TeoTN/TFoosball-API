@@ -24,7 +24,6 @@ class MemberViewSet(ModelViewSet):
 
 
 class MatchViewSet(ModelViewSet):
-    queryset = MatchLegacy.objects.all().order_by('-date')
     serializer_class = MatchSerializer
     allowed_methods = [u'GET', u'POST', u'PUT', u'PATCH', u'DELETE', u'OPTIONS']
     pagination_class = StandardPagination

@@ -12,7 +12,7 @@ class Command(BaseCommand):
         for member in Member.objects.all():
             eh = ExpHistory(player=member, exp=1000)
             eh.save()
-            eh.date = member.date_joined
+            eh.date = member.player.date_joined
             eh.save()
             member.exp = 1000
             member.save()

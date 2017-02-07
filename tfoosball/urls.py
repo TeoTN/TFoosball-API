@@ -9,7 +9,7 @@ from .views import (
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^accounts/', include('allauth.urls')),
-    url(r'^rest-auth/', include('rest_auth.urls')),
+    url(r'^(?P<team>[0-9a-zA-Z]+)/rest-auth/', include('rest_auth.urls')),
     url(r'^rest-auth/google/$', GoogleLoginView.as_view(), name='g_login'),
     url(r'^auth/callback/?$', CallbackView.as_view(), name='auth_callback'),
     url(r'^api/(?P<team>[0-9a-zA-Z]+)/', include('api.urls')),
