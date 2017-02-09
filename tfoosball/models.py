@@ -32,6 +32,9 @@ class Player(AbstractUser):
     highest_exp = models.IntegerField(default=1000)
     hidden = models.BooleanField(default=False)
 
+    def get_teams(self):
+        return list(self.member_set.all().values_list('team__domain', flat=True))
+
     @property
     def won(self):
         return self.offence + self.defence
@@ -84,38 +87,7 @@ class Player(AbstractUser):
             .order_by('-date')
 
 
-class MemberManager(models.Manager):
-    def get_queryset(self):
-        queryset = super(MemberManager, self).get_queryset()
-        queryset = queryset.annotate(won=F('offence') + F('defence'))
-        queryset = queryset.annotate(lost=F('played') - F('won'))
-        queryset = queryset.annotate(att_ratio=ExpressionWrapper(
-            Case(
-                When(won=0, then=0.0),
-                default=Round(F('offence') / F('won'), place=2)
-            ),
-            output_field=models.FloatField()
-        ))
-        queryset = queryset.annotate(def_ratio=ExpressionWrapper(
-            Case(
-                When(won=0, then=0.0),
-                default=Round(F('defence') / F('won'), place=2)
-            ),
-            output_field=models.FloatField()
-        ))
-        queryset = queryset.annotate(win_ratio=ExpressionWrapper(
-            Case(
-                When(played=0, then=0.0),
-                default=Round(F('won') / F('played'), place=2)
-            ),
-            output_field=models.FloatField()
-        ))
-        return queryset
-
-
 class Member(models.Model):
-    objects = MemberManager()
-
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     username = models.CharField(max_length=14, blank=False, null=False)
@@ -132,6 +104,26 @@ class Member(models.Model):
 
     def __str__(self):
         return self.username
+
+    @property
+    def won(self):
+        return self.offence + self.defence
+
+    @property
+    def lost(self):
+        return self.played - self.won
+
+    @property
+    def att_ratio(self):
+        return round(self.offence / self.won if self.won > 0 else 0, 2)
+
+    @property
+    def def_ratio(self):
+        return round(self.defence / self.won if self.won > 0 else 0, 2)
+
+    @property
+    def win_ratio(self):
+        return round(self.won / self.played if self.played > 0 else 0, 2)
 
     def get_latest_matches(self):
         latest = Match.objects.all()

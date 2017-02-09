@@ -7,6 +7,11 @@ import os
 class GoogleLoginView(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
 
+    def get_response(self):
+        response = super(GoogleLoginView, self).get_response()
+        teams = self.user.get_teams()
+        response.data['teams'] = teams
+        return response
 
 class CallbackView(TemplateView):
     template_name = 'callback.html'
