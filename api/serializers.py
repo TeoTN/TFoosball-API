@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from tfoosball.models import Player, MatchLegacy, Team, Member, Match
+from tfoosball.models import Player, Member, Match
 from django.db.models import Avg, Func, Count
+from django.http import Http404
 
 
 class Round(Func):
@@ -14,7 +15,10 @@ class UserSerializer(serializers.ModelSerializer):
     def get_username(self, obj):
         view = self.context['view']
         team_domain = view.kwargs['team']
-        member = Member.objects.get(player=obj, team__domain=team_domain)
+        try:
+            member = Member.objects.get(player=obj, team__domain=team_domain)
+        except Member.DoesNotExist:
+            raise Http404('You do not belong to {0} team'.format(team_domain))
         return member.username
 
     class Meta:

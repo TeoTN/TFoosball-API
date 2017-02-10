@@ -4,8 +4,9 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from .serializers import MatchSerializer, MemberSerializer
 from rest_framework.pagination import PageNumberPagination
-from tfoosball.models import Player, MatchLegacy, Member, Match
+from tfoosball.models import Member, Match
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 
 
 class StandardPagination(PageNumberPagination):
@@ -70,7 +71,7 @@ class UserLatestMatchesView(ListAPIView):
     def get_queryset(self):
         username = self.kwargs['username']
         team = self.kwargs['team']
-        user = Member.objects.get(username=username, team__domain=team)
+        user = get_object_or_404(Member, username=username, team__domain=team)
         return user.get_latest_matches()
 
     def list(self, request, *args, **kwargs):

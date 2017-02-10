@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Q, F, Case, When, Func, ExpressionWrapper
+from django.db.models import Q, Func
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
 
