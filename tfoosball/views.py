@@ -13,6 +13,7 @@ class GoogleLoginView(SocialLoginView):
         response.data['teams'] = teams
         return response
 
+
 class CallbackView(TemplateView):
     template_name = 'callback.html'
 

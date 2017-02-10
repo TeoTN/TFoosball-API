@@ -33,7 +33,7 @@ class Player(AbstractUser):
     hidden = models.BooleanField(default=False)
 
     def get_teams(self):
-        return list(self.member_set.all().values_list('team__domain', flat=True))
+        return list(self.member_set.all().values_list('team__domain', 'team__name'))
 
     @property
     def won(self):
