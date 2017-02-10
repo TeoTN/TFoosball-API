@@ -5,6 +5,7 @@ from .views import (
     CallbackView,
     GoogleLoginView,
 )
+from api.views import TeamView
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -13,5 +14,6 @@ urlpatterns = [
     url(r'^rest-auth/google/$', GoogleLoginView.as_view(), name='g_login'),
     url(r'^auth/callback/?$', CallbackView.as_view(), name='auth_callback'),
     url(r'^api/(?P<team>[0-9a-zA-Z]+)/', include('api.urls')),
+    url(r'^api/teams/?$', TeamView.as_view(), name='teams'),
     url(r'^$', TemplateView.as_view(template_name='index.html'), name='index'),
 ]

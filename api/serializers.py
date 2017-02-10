@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from tfoosball.models import Player, Member, Match
+from tfoosball.models import Player, Member, Match, Team
 from django.db.models import Avg, Func, Count
 from django.http import Http404
 
@@ -7,6 +7,12 @@ from django.http import Http404
 class Round(Func):
     function = 'ROUND'
     template = '%(function)s(%(expressions)s, 0)'
+
+
+class TeamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Team
+        fields = ('domain', 'name')
 
 
 class UserSerializer(serializers.ModelSerializer):

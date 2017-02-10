@@ -2,17 +2,23 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
-from .serializers import MatchSerializer, MemberSerializer
 from rest_framework.pagination import PageNumberPagination
-from tfoosball.models import Member, Match
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from .serializers import MatchSerializer, MemberSerializer, TeamSerializer
+from tfoosball.models import Member, Match, Team
 
 
 class StandardPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 50
+
+
+class TeamView(ListAPIView):
+    serializer_class = TeamSerializer
+    queryset = Team.objects.all()
+    allowed_methods = [u'GET', u'POST', u'OPTIONS']
 
 
 class MemberViewSet(ModelViewSet):
