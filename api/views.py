@@ -15,7 +15,7 @@ class StandardPagination(PageNumberPagination):
     max_page_size = 50
 
 
-class TeamView(ListAPIView):
+class TeamView(ModelViewSet):
     serializer_class = TeamSerializer
     queryset = Team.objects.all()
     allowed_methods = [u'GET', u'POST', u'OPTIONS']
