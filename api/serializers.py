@@ -12,7 +12,8 @@ class Round(Func):
 class TeamSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         instance = super(TeamSerializer, self).create(validated_data)
-        Member.objects.create(team=instance, player=self.context['request'].user)
+        request = self.context['request']
+        Member.objects.create(team=instance, player=request.user, username=request.data['username'])
         return instance
 
     class Meta:
