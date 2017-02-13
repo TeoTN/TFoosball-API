@@ -9,7 +9,7 @@ class GoogleLoginView(SocialLoginView):
 
     def get_response(self):
         response = super(GoogleLoginView, self).get_response()
-        teams = self.user.get_teams()
+        teams = list(self.user.teams.values_list('domain', 'name'))
         response.data['teams'] = teams
         return response
 

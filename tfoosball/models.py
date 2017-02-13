@@ -31,9 +31,7 @@ class Player(AbstractUser):
     lowest_exp = models.IntegerField(default=1000)
     highest_exp = models.IntegerField(default=1000)
     hidden = models.BooleanField(default=False)
-
-    def get_teams(self):
-        return list(self.member_set.all().values_list('team__domain', 'team__name'))
+    teams = models.ManyToManyField(Team, through='Member')
 
     @property
     def won(self):

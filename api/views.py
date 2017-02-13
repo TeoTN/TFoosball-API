@@ -15,10 +15,12 @@ class StandardPagination(PageNumberPagination):
     max_page_size = 50
 
 
-class TeamView(ModelViewSet):
+class TeamViewSet(ModelViewSet):
     serializer_class = TeamSerializer
-    queryset = Team.objects.all()
     allowed_methods = [u'GET', u'POST', u'OPTIONS']
+
+    def get_queryset(self):
+        return self.request.user.teams
 
 
 class MemberViewSet(ModelViewSet):
