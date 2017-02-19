@@ -1,12 +1,14 @@
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView
-from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
-from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from .serializers import MatchSerializer, MemberSerializer, TeamSerializer
-from tfoosball.models import Member, Match, Team
+from django.forms.models import model_to_dict
+from rest_framework import status
+from rest_framework.decorators import list_route, detail_route
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
+from rest_framework_extensions.mixins import NestedViewSetMixin
+from tfoosball.models import Member, Match, Player, Team
+from .serializers import MatchSerializer, MemberSerializer, TeamSerializer, PlayerSerializer
+from .permissions import MemberDeletePermission
 
 
 class StandardPagination(PageNumberPagination):
@@ -15,21 +17,31 @@ class StandardPagination(PageNumberPagination):
     max_page_size = 50
 
 
-class TeamViewSet(ModelViewSet):
+class TeamViewSet(NestedViewSetMixin, ModelViewSet):
     serializer_class = TeamSerializer
     allowed_methods = [u'GET', u'POST', u'OPTIONS']
-
-    def get_queryset(self):
-        return self.request.user.teams
-
-
-class MemberViewSet(ModelViewSet):
-    serializer_class = MemberSerializer
-    lookup_field = 'username'
+    lookup_field = 'domain'
     lookup_value_regex = '[A-Za-z0-9_\-\.]+'
 
     def get_queryset(self):
-        return Member.objects.filter(player__hidden=False, team__domain=self.kwargs['team'])
+        # return self.request.user.teams
+        return Team.objects.all()
+
+
+class MemberViewSet(NestedViewSetMixin, ModelViewSet):
+    serializer_class = MemberSerializer
+    filter_fields = ('is_accepted',)
+    permission_classes = (MemberDeletePermission,)
+
+    def get_queryset(self):
+        team = self.kwargs.get('parent_lookup_team', None)
+        if team:
+            return Member.objects.filter(
+                player__hidden=False,
+                is_accepted=True,
+                team__domain=team
+            )
+        return Member.objects.all()
 
 
 class MatchViewSet(ModelViewSet):
@@ -38,13 +50,13 @@ class MatchViewSet(ModelViewSet):
     pagination_class = StandardPagination
 
     def get_queryset(self):
-        domain = self.kwargs['team']
-        queryset = Match.objects.filter(
-            Q(red_att__team__domain=domain) |
-            Q(red_def__team__domain=domain) |
-            Q(blue_att__team__domain=domain) |
-            Q(blue_def__team__domain=domain)
-        )
+        queryset = Match.objects.all()
+        team_name = self.kwargs.get('parent_lookup_team', None)
+        username = self.request.query_params.get('username', None)
+        if team_name:
+            queryset = queryset.by_team(team_name)
+        if username:
+            queryset = queryset.by_username(username)
         queryset = queryset.order_by('-date')
         return queryset
 
@@ -54,10 +66,9 @@ class MatchViewSet(ModelViewSet):
         response.data['page_size'] = request.GET.get('page_size', StandardPagination.page_size)
         return response
 
-
-class CountPointsView(APIView):
-    def get(self, request, *args, **kwargs):
-        data = {k+'_id': v for k, v in request.GET.items()}
+    @list_route(methods=['get'])
+    def points(self, request, *args, **kwargs):
+        data = {k+'_id': v for k, v in request.query_params.items()}
         match = Match(**data, red_score=0, blue_score=10)
         try:
             result1 = abs(match.calculate_points()[0])
@@ -71,19 +82,33 @@ class CountPointsView(APIView):
         return Response({'blue': result1, 'red': result2})
 
 
-class UserLatestMatchesView(ListAPIView):
-    pagination_class = StandardPagination
-    serializer_class = MatchSerializer
+class PlayerViewSet(ModelViewSet):
+    serializer_class = PlayerSerializer
     allowed_methods = [u'GET', u'OPTIONS']
 
     def get_queryset(self):
-        username = self.kwargs['username']
-        team = self.kwargs['team']
-        user = get_object_or_404(Member, username=username, team__domain=team)
-        return user.get_latest_matches()
+        queryset = Player.objects.all()
+        prefix = self.request.query_params.get('email_prefix', None)
+        if prefix:
+            queryset = queryset.filter(email__istartswith=prefix)
+        return queryset
 
-    def list(self, request, *args, **kwargs):
-        response = super(UserLatestMatchesView, self).list(request, args, kwargs)
-        response.data['page'] = request.GET.get('page', 1)
-        response.data['page_size'] = request.GET.get('page_size', StandardPagination.page_size)
-        return response
+    @detail_route(methods=['post'])
+    def invite(self, request, *args, **kwargs):
+        team__domain = request.data.get('team', None)
+        username = request.data.get('username', None)
+        player__id = kwargs.get('pk', None)
+        if team__domain is None or player__id is None or username is None:
+            return Response({'detail': 'Missing team, username or player id'}, status=status.HTTP_400_BAD_REQUEST)
+        team = get_object_or_404(Team, domain=team__domain)
+        player = get_object_or_404(Player, pk=player__id)
+
+        try:
+            member, created = Member.objects.get(team=team, player=player), False
+        except Member.DoesNotExist:
+            member, created = Member.objects.create(team=team, player=player, username=username[:14]), True
+        if created:
+            return Response(model_to_dict(member), status=status.HTTP_201_CREATED)
+        err_msg = 'Player {0} already is a member of {1} team'.format(member.username, team.name)
+        return Response({'detail': err_msg}, status=status.HTTP_400_BAD_REQUEST)
+

@@ -94,7 +94,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 REST_SESSION_LOGIN = True
 REST_AUTH_SERIALIZERS = {
-    'USER_DETAILS_SERIALIZER': 'api.serializers.UserSerializer',
+    'USER_DETAILS_SERIALIZER': 'api.serializers.PlayerSerializer',
 }
 ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_EMAIL_REQUIRED = True
@@ -114,5 +114,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
         'api.permissions.AccessOwnTeamOnly',
+    ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
     )
 }

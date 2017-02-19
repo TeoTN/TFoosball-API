@@ -24,4 +24,3 @@ class CallbackView(TemplateView):
         context['expires_in'] = request.GET.get('expires_in')
         context['FRONTEND_CLIENT'] = os.environ.get('FRONTEND_CLIENT', 'http://localhost:3000/')
         return self.render_to_response(context)
-

@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from tfoosball.models import Player, Member, Match, Team
 from django.db.models import Avg, Func, Count
-from django.http import Http404
 
 
 class Round(Func):
@@ -13,7 +12,14 @@ class TeamSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         instance = super(TeamSerializer, self).create(validated_data)
         request = self.context['request']
-        Member.objects.create(team=instance, player=request.user, username=request.data['username'])
+        if 'username' in request.data:
+            Member.objects.create(
+                team=instance,
+                player=request.user,
+                username=request.data['username'],
+                is_team_admin=True,
+                is_accepted=True
+            )
         return instance
 
     class Meta:
@@ -21,21 +27,15 @@ class TeamSerializer(serializers.ModelSerializer):
         fields = ('domain', 'name')
 
 
-class UserSerializer(serializers.ModelSerializer):
-    username = serializers.SerializerMethodField()
+class PlayerSerializer(serializers.ModelSerializer):
+    team_username = serializers.SerializerMethodField()
 
-    def get_username(self, obj):
-        view = self.context['view']
-        team_domain = view.kwargs['team']
-        try:
-            member = Member.objects.get(player=obj, team__domain=team_domain)
-        except Member.DoesNotExist:
-            raise Http404('You do not belong to {0} team'.format(team_domain))
-        return member.username
+    def get_team_username(self, obj):
+        return {m[1]: m[0] for m in obj.member_set.values_list('username', 'team__domain')}
 
     class Meta:
         model = Player
-        fields = ('id', 'username', 'email', 'first_name', 'last_name',)
+        fields = ('id', 'email', 'first_name', 'last_name', 'team_username')
 
 
 class MemberSerializer(serializers.ModelSerializer):
