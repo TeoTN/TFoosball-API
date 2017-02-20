@@ -15,7 +15,7 @@ class TeamEndpointTestCase(TestCase):
     def setUp(self):
         self.admin_user = Player.objects.get(username='admin')
         self.dev_team = Team.objects.get(domain='dev')
-        self.fields = ('domain', 'name')
+        self.fields = ('id', 'name')
 
     def test_get_list(self):
         request = factory.get('/api/teams/')
@@ -28,10 +28,10 @@ class TeamEndpointTestCase(TestCase):
         self.assertEqual(len(response_data), Team.objects.count(), 'expected correct number of teams')
 
     def test_get_item(self):
-        request = factory.get('/api/teams/dev/')
+        request = factory.get('/api/teams/{0}/'.format(self.dev_team.id))
         force_authenticate(request, user=self.admin_user)
         view = TeamViewSet.as_view({'get': 'retrieve'})
-        response = view(request, domain='dev')
+        response = view(request, pk=str(self.dev_team.id))
         response.render()
         expected_data = model_to_dict(self.dev_team, fields=self.fields)
         self.assertEqual(response.status_code, status.HTTP_200_OK, 'expected HTTP 200')

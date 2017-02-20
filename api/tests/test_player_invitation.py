@@ -16,7 +16,7 @@ class PlayerInvitationTestCase(TestCase):
 
     def test_invite(self):
         request_data = {
-            'team': self.team.domain,
+            'team': self.team.id,
             'username': 'random',
         }
         request = factory.post('/api/players/1/invite/', request_data)
@@ -39,7 +39,7 @@ class PlayerInvitationTestCase(TestCase):
 
     def test_invite_missing_username(self):
         request_data = {
-            'team': self.team.domain,
+            'team': self.team.id,
         }
         request = factory.post('/api/players/1/invite/', request_data)
         force_authenticate(request, user=self.admin_user)
@@ -50,7 +50,7 @@ class PlayerInvitationTestCase(TestCase):
 
     def test_invite_team_not_found(self):
         request_data = {
-            'team': '03e720ac70a5cc',
+            'team': '1234567',
             'username': 'random',
         }
         request = factory.post('/api/players/1/invite/', request_data)
@@ -62,7 +62,7 @@ class PlayerInvitationTestCase(TestCase):
 
     def test_invite_player_not_found(self):
         request_data = {
-            'team': 'unk',
+            'team': '2',
             'username': 'random',
         }
         request = factory.post('/api/players/10000/invite/', request_data)

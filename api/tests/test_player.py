@@ -3,6 +3,7 @@ from django.forms.models import model_to_dict
 from rest_framework.test import force_authenticate, APIRequestFactory
 from rest_framework import status
 from api.views import PlayerViewSet
+from api.serializers import PlayerSerializer
 from tfoosball.models import Player
 import json
 
@@ -14,7 +15,6 @@ class PlayerEndpointTestCase(TestCase):
 
     def setUp(self):
         self.admin_user = Player.objects.get(username='admin')
-        self.fields = ('id', 'first_name', 'last_name', 'email')
 
     def test_get_list(self):
         request = factory.get('/api/players/')
@@ -32,7 +32,7 @@ class PlayerEndpointTestCase(TestCase):
         view = PlayerViewSet.as_view({'get': 'retrieve'})
         response = view(request, pk='1')
         response.render()
-        expected_data = model_to_dict(self.admin_user, fields=self.fields)
+        expected_data = PlayerSerializer(self.admin_user).data
         self.assertEqual(response.status_code, status.HTTP_200_OK, 'expected HTTP 200')
         self.assertDictEqual(response.data, expected_data, 'expected user admin data')
 

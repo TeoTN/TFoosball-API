@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
+from django.db.models import F
 from rest_framework import status
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.pagination import PageNumberPagination
@@ -8,7 +9,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from tfoosball.models import Member, Match, Player, Team
 from .serializers import MatchSerializer, MemberSerializer, TeamSerializer, PlayerSerializer
-from .permissions import MemberDeletePermission
+from .permissions import MemberPermissions
 
 
 class StandardPagination(PageNumberPagination):
@@ -20,18 +21,25 @@ class StandardPagination(PageNumberPagination):
 class TeamViewSet(NestedViewSetMixin, ModelViewSet):
     serializer_class = TeamSerializer
     allowed_methods = [u'GET', u'POST', u'OPTIONS']
-    lookup_field = 'domain'
-    lookup_value_regex = '[A-Za-z0-9_\-\.]+'
 
     def get_queryset(self):
-        # return self.request.user.teams
         return Team.objects.all()
+
+    @list_route(methods=['get'])
+    def joined(self, request):
+        teams = Team.objects.filter(member__player__id=request.user.id)
+        teams = teams.annotate(username=F('member__username'), member_id=F('member__id'))
+        data = [
+            {'id': team.id, 'name': team.name, 'username': team.username, 'member_id': team.member_id}
+            for team in teams
+        ]
+        return Response(data, status.HTTP_200_OK)
 
 
 class MemberViewSet(NestedViewSetMixin, ModelViewSet):
     serializer_class = MemberSerializer
-    filter_fields = ('is_accepted',)
-    permission_classes = (MemberDeletePermission,)
+    filter_fields = ('is_accepted', 'username')
+    permission_classes = (MemberPermissions,)
 
     def get_queryset(self):
         team = self.kwargs.get('parent_lookup_team', None)
@@ -39,7 +47,7 @@ class MemberViewSet(NestedViewSetMixin, ModelViewSet):
             return Member.objects.filter(
                 player__hidden=False,
                 is_accepted=True,
-                team__domain=team
+                team__pk=team
             )
         return Member.objects.all()
 
@@ -95,12 +103,12 @@ class PlayerViewSet(ModelViewSet):
 
     @detail_route(methods=['post'])
     def invite(self, request, *args, **kwargs):
-        team__domain = request.data.get('team', None)
+        team__id = request.data.get('team', None)
         username = request.data.get('username', None)
         player__id = kwargs.get('pk', None)
-        if team__domain is None or player__id is None or username is None:
+        if team__id is None or player__id is None or username is None:
             return Response({'detail': 'Missing team, username or player id'}, status=status.HTTP_400_BAD_REQUEST)
-        team = get_object_or_404(Team, domain=team__domain)
+        team = get_object_or_404(Team, pk=team__id)
         player = get_object_or_404(Player, pk=player__id)
 
         try:

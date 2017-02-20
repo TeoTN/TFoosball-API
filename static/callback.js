@@ -45,7 +45,6 @@ $.ajax(request)
         r => {
             const data = {
                 token: r.key,
-                teams: r.teams,
             };
             window.opener.postMessage(data, cb_params.FRONTEND_CLIENT);
             setTimeout(() => window.close(), 1000);

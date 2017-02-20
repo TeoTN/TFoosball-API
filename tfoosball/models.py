@@ -12,15 +12,11 @@ class Round(Func):
 
 class Team(models.Model):
     alphanumeric = RegexValidator(r'^[0-9a-zA-Z]+$', 'Only alphanumeric characters are allowed.')
+    domain = models.CharField(max_length=32, validators=[alphanumeric])
     name = models.CharField(max_length=32, unique=True)
-    domain = models.CharField(max_length=32, unique=True, validators=[alphanumeric])
 
     def __str__(self):
         return self.name
-    #
-    # @property
-    # def matches(self):
-    #     return Match.objects.
 
 
 class Player(AbstractUser):
@@ -107,7 +103,7 @@ class Member(models.Model):
     is_accepted = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.username
+        return '{0} ({1})'.format(self.username, self.team.name)
 
     @property
     def won(self):
@@ -192,12 +188,12 @@ class MatchLegacy(models.Model):
 
 
 class MatchQuerySet(models.QuerySet):
-    def by_team(self, team_name):
+    def by_team(self, team_id):
         return self.filter(
-            Q(red_att__team__domain=team_name) &
-            Q(red_def__team__domain=team_name) &
-            Q(blue_att__team__domain=team_name) &
-            Q(blue_def__team__domain=team_name)
+            Q(red_att__team__id=team_id) &
+            Q(red_def__team__id=team_id) &
+            Q(blue_att__team__id=team_id) &
+            Q(blue_def__team__id=team_id)
         )
 
     def by_username(self, username):
@@ -213,8 +209,8 @@ class MatchManager(models.Manager):
     def get_queryset(self):
         return MatchQuerySet(self.model, using=self._db)
 
-    def by_team(self, team_name):
-        return self.get_queryset().by_team(team_name)
+    def by_team(self, team_id):
+        return self.get_queryset().by_team(team_id)
 
     def by_username(self, username):
         return self.get_queryset().by_username(username)

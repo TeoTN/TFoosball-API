@@ -24,18 +24,21 @@ class TeamSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Team
-        fields = ('domain', 'name')
+        fields = ('id', 'name')
 
 
 class PlayerSerializer(serializers.ModelSerializer):
-    team_username = serializers.SerializerMethodField()
-
-    def get_team_username(self, obj):
-        return {m[1]: m[0] for m in obj.member_set.values_list('username', 'team__domain')}
+    # teams = serializers.SerializerMethodField()
+    #
+    # def get_teams(self, obj):
+    #     return {
+    #         m[2]: {'member_id': m[0], 'username': m[1]}
+    #         for m in obj.member_set.values_list('id', 'username', 'team__id')
+    #     }
 
     class Meta:
         model = Player
-        fields = ('id', 'email', 'first_name', 'last_name', 'team_username')
+        fields = ('id', 'email', 'first_name', 'last_name',)
 
 
 class MemberSerializer(serializers.ModelSerializer):
@@ -66,23 +69,9 @@ class MemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Member
         fields = (
-            'id',
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'exp',
-            'played',
-            'att_ratio',
-            'def_ratio',
-            'win_ratio',
-            'win_streak',
-            'lose_streak',
-            'curr_lose_streak',
-            'curr_win_streak',
-            'lowest_exp',
-            'highest_exp',
-            'exp_history',
+            'id', 'username', 'email', 'first_name', 'last_name', 'exp', 'played', 'att_ratio', 'def_ratio',
+            'win_ratio', 'win_streak', 'lose_streak', 'curr_lose_streak', 'curr_win_streak', 'lowest_exp',
+            'highest_exp', 'exp_history',
         )
 
 
