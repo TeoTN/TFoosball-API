@@ -28,14 +28,6 @@ class TeamSerializer(serializers.ModelSerializer):
 
 
 class PlayerSerializer(serializers.ModelSerializer):
-    # teams = serializers.SerializerMethodField()
-    #
-    # def get_teams(self, obj):
-    #     return {
-    #         m[2]: {'member_id': m[0], 'username': m[1]}
-    #         for m in obj.member_set.values_list('id', 'username', 'team__id')
-    #     }
-
     class Meta:
         model = Player
         fields = ('id', 'email', 'first_name', 'last_name',)
@@ -81,6 +73,16 @@ class MatchSerializer(serializers.ModelSerializer):
     blue_att = serializers.SlugRelatedField(slug_field='username', queryset=Member.objects.all())
     blue_def = serializers.SlugRelatedField(slug_field='username', queryset=Member.objects.all())
     points = serializers.IntegerField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        # Ensure that we use only members within team context, if present
+        team_id = kwargs['context']['view'].kwargs.get('parent_lookup_team', None)
+        if team_id:
+            fields = ['red_att', 'red_def', 'blue_att', 'blue_def']
+            for field_name in fields:
+                field = self.fields[field_name]
+                field.queryset = field.queryset.filter(team_id=team_id)
+        super(MatchSerializer, self).__init__(*args, **kwargs)
 
     class Meta:
         model = Match

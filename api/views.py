@@ -58,11 +58,13 @@ class MatchViewSet(ModelViewSet):
     pagination_class = StandardPagination
 
     def get_queryset(self):
+        print('MatchViewSet.get_queryset')
         queryset = Match.objects.all()
-        team_name = self.kwargs.get('parent_lookup_team', None)
+        team_id = self.kwargs.get('parent_lookup_team', None)
+        print('MatchViewSet team_id', team_id)
         username = self.request.query_params.get('username', None)
-        if team_name:
-            queryset = queryset.by_team(team_name)
+        if team_id:
+            queryset = queryset.by_team(team_id)
         if username:
             queryset = queryset.by_username(username)
         queryset = queryset.order_by('-date')
