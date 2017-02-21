@@ -25,6 +25,23 @@ class TeamViewSet(NestedViewSetMixin, ModelViewSet):
     def get_queryset(self):
         return Team.objects.all()
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        headers = self.get_success_headers(serializer.data)
+        response_data = serializer.data
+        if 'username' in request.data:
+            member = Member.objects.create(
+                team=instance,
+                player=request.user,
+                username=request.data['username'],
+                is_team_admin=True,
+                is_accepted=True
+            )
+            response_data.update({'member_id': member.id})
+        return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
+
     @list_route(methods=['get'])
     def joined(self, request):
         """

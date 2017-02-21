@@ -3,7 +3,7 @@ from django.forms.models import model_to_dict
 from rest_framework.test import force_authenticate, APIRequestFactory
 from rest_framework import status
 from api.views import TeamViewSet
-from tfoosball.models import Player, Team
+from tfoosball.models import Player, Team, Member
 import json
 
 factory = APIRequestFactory()
@@ -36,3 +36,17 @@ class TeamEndpointTestCase(TestCase):
         expected_data = model_to_dict(self.dev_team, fields=self.fields)
         self.assertEqual(response.status_code, status.HTTP_200_OK, 'expected HTTP 200')
         self.assertDictEqual(response.data, expected_data, 'expected dev team data')
+
+    def test_post_list(self):
+        request = factory.post('/api/teams/', data={'name': 'Frogz', 'username': 'Ezyme'})
+        force_authenticate(request, user=self.admin_user)
+        view = TeamViewSet.as_view({'post': 'create'})
+        response = view(request)
+        response.render()
+        team = Team.objects.filter(name='Frogz')
+        self.assertEqual(team.count(), 1, 'Expected team to be created')
+        member = Member.objects.filter(player=self.admin_user, team=team, username='Ezyme')
+        self.assertEqual(member.count(), 1, 'Expected member to be created')
+        expected_data = {'id': team[0].id, 'name': team[0].name, 'member_id': member[0].id}
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, 'expected HTTP 201 - Created')
+        self.assertDictEqual(response.data, expected_data, 'Expected appropriate data scheme to be in response')
