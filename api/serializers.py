@@ -76,7 +76,11 @@ class MatchSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         # Ensure that we use only members within team context, if present
-        team_id = kwargs['context']['view'].kwargs.get('parent_lookup_team', None)
+        ctx = kwargs.get('context', None)
+        if not ctx:
+            super(MatchSerializer, self).__init__(*args, **kwargs)
+            return
+        team_id = ctx['view'].kwargs.get('parent_lookup_team', None)
         if team_id:
             fields = ['red_att', 'red_def', 'blue_att', 'blue_def']
             for field_name in fields:

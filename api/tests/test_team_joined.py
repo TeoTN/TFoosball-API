@@ -15,6 +15,7 @@ class TeamJoinedTestCase(TestCase):
 
     def setUp(self):
         self.admin_user = Player.objects.get(username='admin')
+        self.dummy_user = Player.objects.get(username='blewis0')
         self.dev_team = Team.objects.get(domain='dev')
         self.fields = ('id', 'name')
 
@@ -33,3 +34,15 @@ class TeamJoinedTestCase(TestCase):
         response_data = json.loads(str(response.content, encoding='utf8'))
         self.assertEqual(response.status_code, status.HTTP_200_OK, 'expected HTTP 200')
         self.assertEqual(response_data, expected_data, 'expected correct number of teams')
+
+    def test_join_team(self):
+        is_member_before = self.dummy_user.member_set.filter(id=self.dev_team.id).count()
+        self.assertEqual(is_member_before, 0)
+        request = factory.post('/api/teams/{0}/join/'.format(self.dev_team.id), data={'username': 'dummy'})
+        force_authenticate(request, user=self.dummy_user)
+        view = TeamViewSet.as_view({'post': 'join'})
+        response = view(request, pk=str(self.dev_team.id))
+        response.render()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, 'expected HTTP 201 - Created')
+        is_member_after = Member.objects.filter(player=self.dummy_user, team=self.dev_team).count()
+        self.assertEqual(is_member_after, 1, 'expected correct number of teams')

@@ -27,6 +27,10 @@ class TeamViewSet(NestedViewSetMixin, ModelViewSet):
 
     @list_route(methods=['get'])
     def joined(self, request):
+        """
+        :param request:
+        :return: A list of teams that request user has joined
+        """
         teams = Team.objects.filter(member__player__id=request.user.id)
         teams = teams.annotate(username=F('member__username'), member_id=F('member__id'))
         data = [
@@ -34,6 +38,33 @@ class TeamViewSet(NestedViewSetMixin, ModelViewSet):
             for team in teams
         ]
         return Response(data, status.HTTP_200_OK)
+
+    @detail_route(methods=['post'])
+    def join(self, request, pk=None):
+        """
+        This endpoint allows request user to join given team
+        :param request: HttpRequest object with user field
+        :return: Response
+        """
+        username = request.data.get('username', None)
+        if not username:
+            return Response('Missing parameter username', status=status.HTTP_400_BAD_REQUEST)
+        try:
+            team = self.get_object()
+        except:
+            return Response('Team does not exist', status=status.HTTP_404_NOT_FOUND)
+        member, created = Member.objects.get_or_create(
+            team=team,
+            player=request.user,
+            username=username[:14],
+            is_accepted=False,
+        )
+        if created:
+            return Response('Please wait for somebody to accept your join request.', status=status.HTTP_201_CREATED)
+        return Response(
+            data='You have already requested membership in team {0}'.format(team.name),
+            status=status.HTTP_409_CONFLICT
+        )
 
 
 class MemberViewSet(NestedViewSetMixin, ModelViewSet):
@@ -58,10 +89,8 @@ class MatchViewSet(ModelViewSet):
     pagination_class = StandardPagination
 
     def get_queryset(self):
-        print('MatchViewSet.get_queryset')
         queryset = Match.objects.all()
         team_id = self.kwargs.get('parent_lookup_team', None)
-        print('MatchViewSet team_id', team_id)
         username = self.request.query_params.get('username', None)
         if team_id:
             queryset = queryset.by_team(team_id)
