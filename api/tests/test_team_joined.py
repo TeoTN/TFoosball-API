@@ -38,10 +38,10 @@ class TeamJoinedTestCase(TestCase):
     def test_join_team(self):
         is_member_before = self.dummy_user.member_set.filter(id=self.dev_team.id).count()
         self.assertEqual(is_member_before, 0)
-        request = factory.post('/api/teams/{0}/join/'.format(self.dev_team.id), data={'username': 'dummy'})
+        request = factory.post('/api/teams/join/', data={'username': 'dummy', 'team': self.dev_team.name})
         force_authenticate(request, user=self.dummy_user)
         view = TeamViewSet.as_view({'post': 'join'})
-        response = view(request, pk=str(self.dev_team.id))
+        response = view(request)
         response.render()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, 'expected HTTP 201 - Created')
         is_member_after = Member.objects.filter(player=self.dummy_user, team=self.dev_team).count()

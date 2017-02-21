@@ -56,19 +56,22 @@ class TeamViewSet(NestedViewSetMixin, ModelViewSet):
         ]
         return Response(data, status.HTTP_200_OK)
 
-    @detail_route(methods=['post'])
-    def join(self, request, pk=None):
+    @list_route(methods=['post'])
+    def join(self, request):
         """
         This endpoint allows request user to join given team
         :param request: HttpRequest object with user field
         :return: Response
         """
         username = request.data.get('username', None)
+        teamname = request.data.get('team', None)
         if not username:
-            return Response('Missing parameter username', status=status.HTTP_400_BAD_REQUEST)
+            return Response('Missing username', status=status.HTTP_400_BAD_REQUEST)
+        if not teamname:
+            return Response('Missing team name', status=status.HTTP_400_BAD_REQUEST)
         try:
-            team = self.get_object()
-        except:
+            team = Team.objects.get(name=teamname)
+        except Team.DoesNotExist:
             return Response('Team does not exist', status=status.HTTP_404_NOT_FOUND)
         member, created = Member.objects.get_or_create(
             team=team,
