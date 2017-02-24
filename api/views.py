@@ -99,10 +99,14 @@ class MemberViewSet(NestedViewSetMixin, ModelViewSet):
 
     def get_queryset(self):
         team = self.kwargs.get('parent_lookup_team', None)
+        is_accepted = self.request.query_params.get('is_accepted', True)
+        pk = self.kwargs.get('pk', None)
+        if pk:
+            return Member.objects.all()
         if team:
             return Member.objects.filter(
                 player__hidden=False,
-                is_accepted=True,
+                is_accepted=is_accepted,
                 team__pk=team
             )
         return Member.objects.all()
