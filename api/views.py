@@ -1,11 +1,15 @@
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView
-from rest_framework.response import Response
-from .serializers import MatchSerializer, MemberSerializer
+from django.shortcuts import get_object_or_404
+from django.forms.models import model_to_dict
+from django.db.models import F
+from rest_framework import status
+from rest_framework.decorators import list_route, detail_route
 from rest_framework.pagination import PageNumberPagination
-from tfoosball.models import Player, MatchLegacy, Member, Match
-from django.db.models import Q
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
+from rest_framework_extensions.mixins import NestedViewSetMixin
+from tfoosball.models import Member, Match, Player, Team
+from .serializers import MatchSerializer, MemberSerializer, TeamSerializer, PlayerSerializer
+from .permissions import MemberPermissions
 
 
 class StandardPagination(PageNumberPagination):
@@ -14,13 +18,98 @@ class StandardPagination(PageNumberPagination):
     max_page_size = 50
 
 
-class MemberViewSet(ModelViewSet):
-    serializer_class = MemberSerializer
-    lookup_field = 'username'
-    lookup_value_regex = '[A-Za-z0-9_\-\.]+'
+class TeamViewSet(NestedViewSetMixin, ModelViewSet):
+    serializer_class = TeamSerializer
+    allowed_methods = [u'GET', u'POST', u'OPTIONS']
 
     def get_queryset(self):
-        return Member.objects.filter(player__hidden=False, team__domain=self.kwargs['team'])
+        return Team.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        headers = self.get_success_headers(serializer.data)
+        response_data = serializer.data
+        if 'username' in request.data:
+            member = Member.objects.create(
+                team=instance,
+                player=request.user,
+                username=request.data['username'],
+                is_team_admin=True,
+                is_accepted=True
+            )
+            response_data.update({'member_id': member.id})
+        return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
+
+    @list_route(methods=['get'])
+    def joined(self, request):
+        """
+        :param request:
+        :return: A list of teams that request user has joined
+        """
+        teams = Team.objects.filter(member__player__id=request.user.id, member__is_accepted=True)
+        teams_pending = Team.objects.filter(member__player__id=request.user.id, member__is_accepted=False).count()
+        teams = teams.annotate(username=F('member__username'), member_id=F('member__id'))
+        teams_data = [
+            {'id': team.id, 'name': team.name, 'username': team.username, 'member_id': team.member_id}
+            for team in teams
+        ]
+        data = {
+            'teams': teams_data,
+            'pending': teams_pending,
+        }
+        return Response(data, status.HTTP_200_OK)
+
+    @list_route(methods=['post'])
+    def join(self, request):
+        """
+        This endpoint allows request user to join given team
+        :param request: HttpRequest object with user field
+        :return: Response
+        """
+        username = request.data.get('username', None)
+        teamname = request.data.get('team', None)
+        if not username:
+            return Response('Missing username', status=status.HTTP_400_BAD_REQUEST)
+        if not teamname:
+            return Response('Missing team name', status=status.HTTP_400_BAD_REQUEST)
+        try:
+            team = Team.objects.get(name=teamname)
+        except Team.DoesNotExist:
+            return Response('Team does not exist', status=status.HTTP_404_NOT_FOUND)
+        member, created = Member.objects.get_or_create(
+            team=team,
+            player=request.user,
+            username=username[:14],
+            is_accepted=False,
+        )
+        if created:
+            return Response('Please wait for somebody to accept your join request.', status=status.HTTP_201_CREATED)
+        return Response(
+            data='You have already requested membership in team {0}'.format(team.name),
+            status=status.HTTP_409_CONFLICT
+        )
+
+
+class MemberViewSet(NestedViewSetMixin, ModelViewSet):
+    serializer_class = MemberSerializer
+    filter_fields = ('is_accepted', 'username')
+    permission_classes = (MemberPermissions,)
+
+    def get_queryset(self):
+        team = self.kwargs.get('parent_lookup_team', None)
+        is_accepted = self.request.query_params.get('is_accepted', True)
+        pk = self.kwargs.get('pk', None)
+        if pk:
+            return Member.objects.all()
+        if team:
+            return Member.objects.filter(
+                player__hidden=False,
+                is_accepted=is_accepted,
+                team__pk=team
+            )
+        return Member.objects.all()
 
 
 class MatchViewSet(ModelViewSet):
@@ -29,13 +118,13 @@ class MatchViewSet(ModelViewSet):
     pagination_class = StandardPagination
 
     def get_queryset(self):
-        domain = self.kwargs['team']
-        queryset = Match.objects.filter(
-            Q(red_att__team__domain=domain) |
-            Q(red_def__team__domain=domain) |
-            Q(blue_att__team__domain=domain) |
-            Q(blue_def__team__domain=domain)
-        )
+        queryset = Match.objects.all()
+        team_id = self.kwargs.get('parent_lookup_team', None)
+        username = self.request.query_params.get('username', None)
+        if team_id:
+            queryset = queryset.by_team(team_id)
+        if username:
+            queryset = queryset.by_username(username)
         queryset = queryset.order_by('-date')
         return queryset
 
@@ -45,10 +134,9 @@ class MatchViewSet(ModelViewSet):
         response.data['page_size'] = request.GET.get('page_size', StandardPagination.page_size)
         return response
 
-
-class CountPointsView(APIView):
-    def get(self, request, *args, **kwargs):
-        data = {k+'_id': v for k, v in request.GET.items()}
+    @list_route(methods=['get'])
+    def points(self, request, *args, **kwargs):
+        data = {k+'_id': v for k, v in request.query_params.items()}
         match = Match(**data, red_score=0, blue_score=10)
         try:
             result1 = abs(match.calculate_points()[0])
@@ -62,19 +150,33 @@ class CountPointsView(APIView):
         return Response({'blue': result1, 'red': result2})
 
 
-class UserLatestMatchesView(ListAPIView):
-    pagination_class = StandardPagination
-    serializer_class = MatchSerializer
+class PlayerViewSet(ModelViewSet):
+    serializer_class = PlayerSerializer
     allowed_methods = [u'GET', u'OPTIONS']
 
     def get_queryset(self):
-        username = self.kwargs['username']
-        team = self.kwargs['team']
-        user = Member.objects.get(username=username, team__domain=team)
-        return user.get_latest_matches()
+        queryset = Player.objects.all()
+        prefix = self.request.query_params.get('email_prefix', None)
+        if prefix:
+            queryset = queryset.filter(email__istartswith=prefix)
+        return queryset
 
-    def list(self, request, *args, **kwargs):
-        response = super(UserLatestMatchesView, self).list(request, args, kwargs)
-        response.data['page'] = request.GET.get('page', 1)
-        response.data['page_size'] = request.GET.get('page_size', StandardPagination.page_size)
-        return response
+    @detail_route(methods=['post'])
+    def invite(self, request, *args, **kwargs):
+        team__id = request.data.get('team', None)
+        username = request.data.get('username', None)
+        player__id = kwargs.get('pk', None)
+        if team__id is None or player__id is None or username is None:
+            return Response({'detail': 'Missing team, username or player id'}, status=status.HTTP_400_BAD_REQUEST)
+        team = get_object_or_404(Team, pk=team__id)
+        player = get_object_or_404(Player, pk=player__id)
+
+        try:
+            member, created = Member.objects.get(team=team, player=player), False
+        except Member.DoesNotExist:
+            member, created = Member.objects.create(team=team, player=player, username=username[:14]), True
+        if created:
+            return Response(model_to_dict(member), status=status.HTTP_201_CREATED)
+        err_msg = 'Player {0} already is a member of {1} team'.format(member.username, team.name)
+        return Response({'detail': err_msg}, status=status.HTTP_400_BAD_REQUEST)
+

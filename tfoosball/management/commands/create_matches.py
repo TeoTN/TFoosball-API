@@ -7,7 +7,7 @@ class Command(BaseCommand):
     help = 'Populates db with randomly generated matches. Requires at least 4 users in db and a dev team.'
 
     def create_matches(self, number):
-        team = Team.objects.get(domain='dev')
+        team, created = Team.objects.get_or_create(domain='dev', name='Developer Team')
         users = list(Member.objects.filter(team=team))
         if len(users) < 4:
             raise ValueError("Not enough players")

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from tfoosball.models import Player, MatchLegacy, Team, Member, Match
+from tfoosball.models import Player, Member, Match, Team
 from django.db.models import Avg, Func, Count
 
 
@@ -8,18 +8,16 @@ class Round(Func):
     template = '%(function)s(%(expressions)s, 0)'
 
 
-class UserSerializer(serializers.ModelSerializer):
-    username = serializers.SerializerMethodField()
+class TeamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Team
+        fields = ('id', 'name')
 
-    def get_username(self, obj):
-        view = self.context['view']
-        team_domain = view.kwargs['team']
-        member = Member.objects.get(player=obj, team__domain=team_domain)
-        return member.username
 
+class PlayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Player
-        fields = ('id', 'username', 'email', 'first_name', 'last_name',)
+        fields = ('id', 'email', 'first_name', 'last_name',)
 
 
 class MemberSerializer(serializers.ModelSerializer):
@@ -50,23 +48,9 @@ class MemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Member
         fields = (
-            'id',
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'exp',
-            'played',
-            'att_ratio',
-            'def_ratio',
-            'win_ratio',
-            'win_streak',
-            'lose_streak',
-            'curr_lose_streak',
-            'curr_win_streak',
-            'lowest_exp',
-            'highest_exp',
-            'exp_history',
+            'id', 'username', 'email', 'first_name', 'last_name', 'exp', 'played', 'att_ratio', 'def_ratio',
+            'win_ratio', 'win_streak', 'lose_streak', 'curr_lose_streak', 'curr_win_streak', 'lowest_exp',
+            'highest_exp', 'exp_history', 'is_accepted',
         )
 
 
@@ -76,6 +60,20 @@ class MatchSerializer(serializers.ModelSerializer):
     blue_att = serializers.SlugRelatedField(slug_field='username', queryset=Member.objects.all())
     blue_def = serializers.SlugRelatedField(slug_field='username', queryset=Member.objects.all())
     points = serializers.IntegerField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        # Ensure that we use only members within team context, if present
+        ctx = kwargs.get('context', None)
+        if not ctx:
+            super(MatchSerializer, self).__init__(*args, **kwargs)
+            return
+        team_id = ctx['view'].kwargs.get('parent_lookup_team', None)
+        if team_id:
+            fields = ['red_att', 'red_def', 'blue_att', 'blue_def']
+            for field_name in fields:
+                field = self.fields[field_name]
+                field.queryset = field.queryset.filter(team_id=team_id)
+        super(MatchSerializer, self).__init__(*args, **kwargs)
 
     class Meta:
         model = Match

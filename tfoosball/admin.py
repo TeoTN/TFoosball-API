@@ -10,7 +10,7 @@ class ExpHistoryAdmin(admin.ModelAdmin):
 
 
 class TeamAdmin(admin.ModelAdmin):
-    list_display = ('name', 'domain',)
+    list_display = ('name',)
 
 admin.site.register(Player)
 admin.site.register(Match)

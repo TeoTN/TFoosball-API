@@ -7,6 +7,10 @@ import os
 class GoogleLoginView(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
 
+    def get_response(self):
+        response = super(GoogleLoginView, self).get_response()
+        return response
+
 
 class CallbackView(TemplateView):
     template_name = 'callback.html'
@@ -18,4 +22,3 @@ class CallbackView(TemplateView):
         context['expires_in'] = request.GET.get('expires_in')
         context['FRONTEND_CLIENT'] = os.environ.get('FRONTEND_CLIENT', 'http://localhost:3000/')
         return self.render_to_response(context)
-

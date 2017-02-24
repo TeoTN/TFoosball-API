@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Q, F, Case, When, Func, ExpressionWrapper
+from django.db.models import Q, Func
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
 
@@ -12,8 +12,8 @@ class Round(Func):
 
 class Team(models.Model):
     alphanumeric = RegexValidator(r'^[0-9a-zA-Z]+$', 'Only alphanumeric characters are allowed.')
+    domain = models.CharField(max_length=32, validators=[alphanumeric])
     name = models.CharField(max_length=32, unique=True)
-    domain = models.CharField(max_length=32, unique=True, validators=[alphanumeric])
 
     def __str__(self):
         return self.name
@@ -31,6 +31,7 @@ class Player(AbstractUser):
     lowest_exp = models.IntegerField(default=1000)
     highest_exp = models.IntegerField(default=1000)
     hidden = models.BooleanField(default=False)
+    teams = models.ManyToManyField(Team, through='Member')
 
     @property
     def won(self):
@@ -98,6 +99,8 @@ class Member(models.Model):
     curr_lose_streak = models.IntegerField(default=0)
     lowest_exp = models.IntegerField(default=1000)
     highest_exp = models.IntegerField(default=1000)
+    is_team_admin = models.BooleanField(default=False)
+    is_accepted = models.BooleanField(default=False)
 
     @property
     def won(self):
@@ -120,7 +123,27 @@ class Member(models.Model):
         return round(self.won / self.played if self.played > 0 else 0, 2)
     
     def __str__(self):
-        return self.username
+        return '{0} ({1})'.format(self.username, self.team.name)
+
+    @property
+    def won(self):
+        return self.offence + self.defence
+
+    @property
+    def lost(self):
+        return self.played - self.won
+
+    @property
+    def att_ratio(self):
+        return round(self.offence / self.won if self.won > 0 else 0, 2)
+
+    @property
+    def def_ratio(self):
+        return round(self.defence / self.won if self.won > 0 else 0, 2)
+
+    @property
+    def win_ratio(self):
+        return round(self.won / self.played if self.played > 0 else 0, 2)
 
     def get_latest_matches(self):
         latest = Match.objects.all()
@@ -184,7 +207,38 @@ class MatchLegacy(models.Model):
         super(MatchLegacy, self).save(*args, **kwargs)
 
 
+class MatchQuerySet(models.QuerySet):
+    def by_team(self, team_id):
+        return self.filter(
+            Q(red_att__team__id=team_id) &
+            Q(red_def__team__id=team_id) &
+            Q(blue_att__team__id=team_id) &
+            Q(blue_def__team__id=team_id)
+        )
+
+    def by_username(self, username):
+        return self.filter(
+            Q(red_att__username=username) |
+            Q(red_def__username=username) |
+            Q(blue_att__username=username) |
+            Q(blue_def__username=username)
+        )
+
+
+class MatchManager(models.Manager):
+    def get_queryset(self):
+        return MatchQuerySet(self.model, using=self._db)
+
+    def by_team(self, team_id):
+        return self.get_queryset().by_team(team_id)
+
+    def by_username(self, username):
+        return self.get_queryset().by_username(username)
+
+
 class Match(models.Model):
+    objects = MatchManager()
+
     red_att = models.ForeignKey(Member, related_name='red_att')
     red_def = models.ForeignKey(Member, related_name='red_def')
     blue_att = models.ForeignKey(Member, related_name='blue_att')
@@ -194,6 +248,10 @@ class Match(models.Model):
     blue_score = models.IntegerField()
     points = models.IntegerField()
     status = models.IntegerField(default=20)
+
+    @property
+    def users(self):
+        return [self.red_att, self.red_def, self.blue_def, self.blue_att]
 
     def calculate_points(self):
         """
