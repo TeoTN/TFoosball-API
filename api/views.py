@@ -48,12 +48,17 @@ class TeamViewSet(NestedViewSetMixin, ModelViewSet):
         :param request:
         :return: A list of teams that request user has joined
         """
-        teams = Team.objects.filter(member__player__id=request.user.id)
+        teams = Team.objects.filter(member__player__id=request.user.id, member__is_accepted=True)
+        teams_pending = Team.objects.filter(member__player__id=request.user.id, member__is_accepted=False).count()
         teams = teams.annotate(username=F('member__username'), member_id=F('member__id'))
-        data = [
+        teams_data = [
             {'id': team.id, 'name': team.name, 'username': team.username, 'member_id': team.member_id}
             for team in teams
         ]
+        data = {
+            'teams': teams_data,
+            'pending': teams_pending,
+        }
         return Response(data, status.HTTP_200_OK)
 
     @list_route(methods=['post'])

@@ -20,7 +20,8 @@ class TeamJoinedTestCase(TestCase):
         self.fields = ('id', 'name')
 
     def test_get_joined_teams(self):
-        teams = Team.objects.filter(member__player__id=self.admin_user.id)
+        teams = Team.objects.filter(member__player__id=self.admin_user.id, member__is_accepted=True)
+        pending = Team.objects.filter(member__player__id=self.admin_user.id, member__is_accepted=False).count()
         teams = teams.annotate(username=F('member__username'), member_id=F('member__id'))
         expected_data = [
             {'id': team.id, 'name': team.name, 'username': team.username, 'member_id': team.member_id}
@@ -33,7 +34,8 @@ class TeamJoinedTestCase(TestCase):
         response.render()
         response_data = json.loads(str(response.content, encoding='utf8'))
         self.assertEqual(response.status_code, status.HTTP_200_OK, 'expected HTTP 200')
-        self.assertEqual(response_data, expected_data, 'expected correct number of teams')
+        self.assertEqual(response_data['teams'], expected_data, 'expected list of joined teams')
+        self.assertEqual(response_data['pending'], pending, 'expected correct number of pending teams')
 
     def test_join_team(self):
         is_member_before = self.dummy_user.member_set.filter(id=self.dev_team.id).count()
