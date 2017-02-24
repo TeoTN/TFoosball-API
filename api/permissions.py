@@ -28,7 +28,6 @@ class MemberPermissions(permissions.BasePermission):
         is_correct_team = view.get_object().team.name in request_teams
         return is_correct_team
 
-
     def has_permission(self, request, view):
         if request.method == 'GET':
             return True
