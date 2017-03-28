@@ -44,7 +44,7 @@ $.ajax(request)
     .then(
         r => {
             const expires_at = new Date();
-            expires_at.setSeconds(expires_at.getSeconds() + r.expires_in);
+            expires_at.setSeconds(expires_at.getSeconds() + parseInt(params.expires_in));
             const data = {
                 token: r.key,
                 expires_at,
