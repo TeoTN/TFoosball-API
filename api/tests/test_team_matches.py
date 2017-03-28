@@ -31,11 +31,11 @@ class TeamMatchesEndpointTestCase(TestCase):
         self.assertEqual(response_data['count'], matches.count(), 'expected correct number of dev team matches')
 
     def test_get_item(self):
-        match = Match.objects.get(pk=1)
-        request = factory.get('/api/teams/{0}/matches/1/'.format(self.dev_team.id))
+        match = Match.objects.get(pk=9)
+        request = factory.get('/api/teams/{0}/matches/9/'.format(self.dev_team.id))
         force_authenticate(request, user=self.admin_user)
         view = MatchViewSet.as_view({'get': 'retrieve'})
-        response = view(request, parent_lookup_team=str(self.dev_team.id), pk='1')
+        response = view(request, parent_lookup_team=str(self.dev_team.id), pk='9')
         response.render()
         expected_data = MatchSerializer(match).data
         self.assertEqual(response.status_code, status.HTTP_200_OK, 'expected HTTP 200')

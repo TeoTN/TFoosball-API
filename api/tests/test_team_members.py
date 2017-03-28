@@ -63,7 +63,7 @@ class TeamMembersEndpointTestCase(TestCase):
 
     def test_get_pending(self):
         members = Member.objects.filter(team=self.dev_team, is_accepted=False)
-        request = factory.get('/api/teams/{0}/members/?is_accepted=false'.format(self.dev_team.id))
+        request = factory.get('/api/teams/{0}/members/?is_accepted=False'.format(self.dev_team.id))
         force_authenticate(request, user=self.admin_user)
         view = MemberViewSet.as_view({'get': 'list'})
         response = view(request, parent_lookup_team=str(self.dev_team.id))
