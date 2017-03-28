@@ -5,4 +5,4 @@ class TFoosballConfig(AppConfig):
     name = 'tfoosball'
 
     def ready(self):
-        import tfoosball.signals
+        import tfoosball.signals # NOQA

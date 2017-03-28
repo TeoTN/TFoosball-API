@@ -1,4 +1,4 @@
-from tfoosball.common_settings import *
+from tfoosball.common_settings import * # NOQA
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '7d!g5l*3nm1=2s@&%11d+jz_$#ii2bugj+9ynhq&cfl0r%pnn)'
@@ -13,7 +13,7 @@ ALLOWED_HOSTS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'), # NOQA
     }
 }
 
@@ -39,7 +39,7 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'matches.log'),
+            'filename': os.path.join(BASE_DIR, 'matches.log'), # NOQA
             'formatter': 'verbose'
         },
         'console': {

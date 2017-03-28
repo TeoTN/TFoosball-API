@@ -1,5 +1,4 @@
 from django.test import TestCase
-from django.forms.models import model_to_dict
 from rest_framework.test import force_authenticate, APIRequestFactory
 from rest_framework import status
 from api.views import PlayerViewSet
