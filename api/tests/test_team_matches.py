@@ -62,7 +62,8 @@ class TeamMatchesEndpointTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE, 'expected HTTP 406 - Not acceptable')
 
     def test_count_points(self):
-        request = factory.get('/api/teams/{0}/matches/points/?red_att=8&red_def=8&blue_att=8&blue_def=8'.format(self.dev_team.id))
+        request = factory.get(
+            '/api/teams/{0}/matches/points/?red_att=8&red_def=8&blue_att=8&blue_def=8'.format(self.dev_team.id))
         force_authenticate(request, user=self.admin_user)
         view = MatchViewSet.as_view({'get': 'points'})
         response = view(request, parent_lookup_team=str(self.dev_team.id))

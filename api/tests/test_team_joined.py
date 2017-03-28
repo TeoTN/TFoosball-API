@@ -3,7 +3,6 @@ from django.db.models import F
 from rest_framework.test import force_authenticate, APIRequestFactory
 from rest_framework import status
 from api.views import TeamViewSet
-from api.serializers import TeamSerializer
 from tfoosball.models import Player, Team, Member
 import json
 
