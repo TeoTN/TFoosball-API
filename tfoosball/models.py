@@ -29,8 +29,8 @@ class Member(models.Model):
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     username = models.CharField(max_length=14, blank=False, null=False)
     exp = models.IntegerField(blank=False, null=False, default=1000)
-    offence = models.IntegerField(default=0)
-    defence = models.IntegerField(default=0)
+    offence_won = models.IntegerField(default=0)
+    defence_won = models.IntegerField(default=0)
     played = models.IntegerField(default=0)
     win_streak = models.IntegerField(default=0)
     curr_win_streak = models.IntegerField(default=0)
@@ -46,7 +46,7 @@ class Member(models.Model):
 
     @property
     def won(self):
-        return self.offence + self.defence
+        return self.offence_won + self.defence_won
 
     @property
     def lost(self):
@@ -54,11 +54,11 @@ class Member(models.Model):
 
     @property
     def att_ratio(self):
-        return round(self.offence / self.won if self.won > 0 else 0, 2)
+        return round(self.offence_won / self.won if self.won > 0 else 0, 2)
 
     @property
     def def_ratio(self):
-        return round(self.defence / self.won if self.won > 0 else 0, 2)
+        return round(self.defence_won / self.won if self.won > 0 else 0, 2)
 
     @property
     def win_ratio(self):
@@ -85,9 +85,9 @@ class Member(models.Model):
             self.curr_lose_streak = 0
 
             if is_offence:
-                self.offence += 1
+                self.offence_won += 1
             else:
-                self.defence += 1
+                self.defence_won += 1
         else:
             self.curr_win_streak = 0
             self.curr_lose_streak += 1
