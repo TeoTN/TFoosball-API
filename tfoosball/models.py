@@ -31,7 +31,6 @@ class Member(models.Model):
     exp = models.IntegerField(blank=False, null=False, default=1000)
     offence_won = models.IntegerField(default=0)
     defence_won = models.IntegerField(default=0)
-    played = models.IntegerField(default=0)
     offence_played = models.IntegerField(default=0)
     defence_played = models.IntegerField(default=0)
     win_streak = models.IntegerField(default=0)
@@ -45,6 +44,10 @@ class Member(models.Model):
 
     def __str__(self):
         return '{0} ({1})'.format(self.username, self.team.name)
+
+    @property
+    def played(self):
+        return self.offence_played + self.defence_played
 
     @property
     def won(self):
@@ -98,7 +101,6 @@ class Member(models.Model):
 
     def after_match_update(self, points, is_winner, is_offence):
         self.exp += points
-        self.played += 1
 
         if is_winner:
             self.update_winner(is_offence)
