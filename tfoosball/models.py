@@ -32,6 +32,8 @@ class Member(models.Model):
     offence_won = models.IntegerField(default=0)
     defence_won = models.IntegerField(default=0)
     played = models.IntegerField(default=0)
+    offence_played = models.IntegerField(default=0)
+    defence_played = models.IntegerField(default=0)
     win_streak = models.IntegerField(default=0)
     curr_win_streak = models.IntegerField(default=0)
     lose_streak = models.IntegerField(default=0)
@@ -54,11 +56,11 @@ class Member(models.Model):
 
     @property
     def att_ratio(self):
-        return round(self.offence_won / self.won if self.won > 0 else 0, 2)
+        return round(self.offence_played / self.offence_won if self.offence_won > 0 else 0, 2)
 
     @property
     def def_ratio(self):
-        return round(self.defence_won / self.won if self.won > 0 else 0, 2)
+        return round(self.defence_played / self.defence_won if self.defence_won > 0 else 0, 2)
 
     @property
     def win_ratio(self):
@@ -76,21 +78,33 @@ class Member(models.Model):
         self.lowest_exp = min(self.lowest_exp, self.exp)
         self.highest_exp = max(self.highest_exp, self.exp)
 
+    def update_winner(self, is_offence):
+        self.curr_win_streak += 1
+        self.curr_lose_streak = 0
+        if is_offence:
+            self.offence_won += 1
+            self.offence_played += 1
+        else:
+            self.defence_won += 1
+            self.defence_played += 1
+
+    def update_loser(self, is_offence):
+        self.curr_win_streak = 0
+        self.curr_lose_streak += 1
+        if is_offence:
+            self.offence_played += 1
+        else:
+            self.defence_played += 1
+
     def after_match_update(self, points, is_winner, is_offence):
         self.exp += points
         self.played += 1
 
         if is_winner:
-            self.curr_win_streak += 1
-            self.curr_lose_streak = 0
-
-            if is_offence:
-                self.offence_won += 1
-            else:
-                self.defence_won += 1
+            self.update_winner(is_offence)
         else:
-            self.curr_win_streak = 0
-            self.curr_lose_streak += 1
+            self.update_loser(is_offence)
+
         self.update_extremes()
         self.save()
 
@@ -140,6 +154,14 @@ class Match(models.Model):
     @property
     def users(self):
         return [self.red_att, self.red_def, self.blue_def, self.blue_att]
+
+    @property
+    def attackers(self):
+        return [self.red_att, self.blue_att]
+
+    @property
+    def defenders(self):
+        return [self.red_def, self.blue_def]
 
     def calculate_points(self):
         """
