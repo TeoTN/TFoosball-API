@@ -60,8 +60,24 @@ class MatchModelTest(TestCase):
             points_1, _ = match_1.calculate_points()
             self.assertEqual(points_0, -points_1)
 
-    def test_update_exp(self):
+    def test_update_exp_red_wins(self):
         match = Match(red_score=8, blue_score=10, **self.members_0)
+        exp_0 = (
+            self.members_0['red_att'].exp, self.members_0['red_def'].exp,
+            self.members_0['blue_att'].exp, self.members_0['blue_def'].exp)
+        match.save()
+        points = match.points
+        exp_1 = (
+            self.members_0['red_att'].exp, self.members_0['red_def'].exp,
+            self.members_0['blue_att'].exp, self.members_0['blue_def'].exp)
+
+        self.assertEqual(exp_0[0] + points, exp_1[0])
+        self.assertEqual(exp_0[1] + points, exp_1[1])
+        self.assertEqual(exp_0[2] - points, exp_1[2])
+        self.assertEqual(exp_0[3] - points, exp_1[3])
+
+    def test_update_exp_blue_wins(self):
+        match = Match(red_score=10, blue_score=8, **self.members_0)
         exp_0 = (
             self.members_0['red_att'].exp, self.members_0['red_def'].exp,
             self.members_0['blue_att'].exp, self.members_0['blue_def'].exp)
