@@ -25,6 +25,9 @@ class Player(AbstractUser):
 
 
 class Member(models.Model):
+    WINNER = 1
+    LOSER = 0
+
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     username = models.CharField(max_length=14, blank=False, null=False)
@@ -99,13 +102,13 @@ class Member(models.Model):
         else:
             self.defence_played += 1
 
-    def after_match_update(self, points, winner, is_offence):
+    def after_match_update(self, points, result, is_offence):
         self.exp += points
         self.update_played_games(is_offence)
 
-        if winner == 1:
+        if result == self.WINNER:
             self.update_winner(is_offence)
-        elif winner == 0:
+        elif result == self.LOSER:
             self.update_loser()
 
         self.update_extremes()
@@ -142,10 +145,14 @@ class MatchManager(models.Manager):
 
 
 class Match(models.Model):
+    RED = 1
+    BLUE = 0
+    TIE = 0.5
+
     WINNER_CHOICES = (
-        (1, 'red'),
-        (0, 'blue'),
-        (0.5, 'tie')
+        (RED, 'red'),
+        (BLUE, 'blue'),
+        (TIE, 'tie')
     )
     objects = MatchManager()
 
@@ -171,11 +178,19 @@ class Match(models.Model):
     def defenders(self):
         return [self.red_def, self.blue_def]
 
+    def get_team_result(self, winner):
+        if winner == Match.RED:
+            return Member.WINNER, Member.LOSER
+        if winner == Match.BLUE:
+            return Member.LOSER, Member.WINNER
+        return Match.TIE, Match.TIE
+
     def update_players(self, winner):
-        self.red_att.after_match_update(self.points, winner, True)
-        self.red_def.after_match_update(self.points, winner, False)
-        self.blue_att.after_match_update(-self.points, winner, True)
-        self.blue_def.after_match_update(-self.points, winner, False)
+        red_result, blue_result = self.get_team_result(winner)
+        self.red_att.after_match_update(self.points, red_result, True)
+        self.red_def.after_match_update(self.points, red_result, False)
+        self.blue_att.after_match_update(-self.points, blue_result, True)
+        self.blue_def.after_match_update(-self.points, blue_result, False)
 
     def calculate_points(self):
         """

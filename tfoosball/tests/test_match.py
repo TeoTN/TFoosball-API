@@ -19,19 +19,19 @@ class MatchModelTest(TestCase):
         match = Match(red_score=15, blue_score=10, **self.members_0)
         points, winner = match.calculate_points()
         self.assertGreaterEqual(points, 0)
-        self.assertEqual(winner, 1)
+        self.assertEqual(winner, Match.RED)
 
     def test_10_0(self):
         match = Match(red_score=10, blue_score=0, **self.members_0)
         points, winner = match.calculate_points()
         self.assertGreaterEqual(points, 0)
-        self.assertEqual(winner, 1)
+        self.assertEqual(winner, Match.RED)
 
     def test_0_10(self):
         match = Match(red_score=0, blue_score=10, **self.members_0)
         points, winner = match.calculate_points()
         self.assertLessEqual(points, 0)
-        self.assertEqual(winner, 0)
+        self.assertEqual(winner, Match.BLUE)
 
     def test_equal_tie(self):
         self.members_0['blue_def'].exp = 1034
@@ -41,7 +41,7 @@ class MatchModelTest(TestCase):
             match = Match(red_score=score, blue_score=score, **self.members_0)
             points, winner = match.calculate_points()
             self.assertEqual(points, 0)
-            self.assertEqual(winner, 0.5)
+            self.assertEqual(winner, Match.TIE)
 
     def test_unequal_tie(self):
         self.assertNotEqual(self.members_0['red_att'].exp + self.members_0['red_def'].exp,
@@ -50,7 +50,7 @@ class MatchModelTest(TestCase):
         for score in range(1, 11):
             match = Match(red_score=score, blue_score=score, **self.members_0)
             _, winner = match.calculate_points()
-            self.assertEqual(winner, 0.5)
+            self.assertEqual(winner, Match.TIE)
 
     def test_bias(self):
         for score in range(1, 11):
