@@ -25,6 +25,9 @@ class Player(AbstractUser):
 
 
 class Member(models.Model):
+    WINNER = 1
+    LOSER = 0
+
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     username = models.CharField(max_length=14, blank=False, null=False)
@@ -86,26 +89,27 @@ class Member(models.Model):
         self.curr_lose_streak = 0
         if is_offence:
             self.offence_won += 1
-            self.offence_played += 1
         else:
             self.defence_won += 1
-            self.defence_played += 1
 
-    def update_loser(self, is_offence):
+    def update_loser(self):
         self.curr_win_streak = 0
         self.curr_lose_streak += 1
+
+    def update_played_games(self, is_offence):
         if is_offence:
             self.offence_played += 1
         else:
             self.defence_played += 1
 
-    def after_match_update(self, points, is_winner, is_offence):
+    def after_match_update(self, points, result, is_offence):
         self.exp += points
+        self.update_played_games(is_offence)
 
-        if is_winner:
+        if result == self.WINNER:
             self.update_winner(is_offence)
-        else:
-            self.update_loser(is_offence)
+        elif result == self.LOSER:
+            self.update_loser()
 
         self.update_extremes()
         self.save()
@@ -141,6 +145,15 @@ class MatchManager(models.Manager):
 
 
 class Match(models.Model):
+    RED = 1
+    BLUE = 0
+    TIE = 0.5
+
+    WINNER_CHOICES = (
+        (RED, 'red'),
+        (BLUE, 'blue'),
+        (TIE, 'tie')
+    )
     objects = MatchManager()
 
     red_att = models.ForeignKey(Member, related_name='red_att')
@@ -165,23 +178,35 @@ class Match(models.Model):
     def defenders(self):
         return [self.red_def, self.blue_def]
 
+    def get_team_result(self, winner):
+        if winner == Match.RED:
+            return Member.WINNER, Member.LOSER
+        if winner == Match.BLUE:
+            return Member.LOSER, Member.WINNER
+        return Match.TIE, Match.TIE
+
+    def update_players(self, winner):
+        red_result, blue_result = self.get_team_result(winner)
+        self.red_att.after_match_update(self.points, red_result, True)
+        self.red_def.after_match_update(self.points, red_result, False)
+        self.blue_att.after_match_update(-self.points, blue_result, True)
+        self.blue_def.after_match_update(-self.points, blue_result, False)
+
     def calculate_points(self):
         """
-        :return: The amount of points that red team should gain and information whether red team won
+        :return: The amount of points that red team should gain and information about winner mapped as in WINNER_CHOICES
         """
+        assert(self.red_score >= 0 and self.blue_score >= 0)
         K = int(self.status)
         G = (11 + abs(self.red_score - self.blue_score)) / 8
         dr = ((self.red_att.exp + self.red_def.exp) - (self.blue_att.exp + self.blue_def.exp))
         We = 1 / ((10 ** -(dr / 400)) + 1)
-        W = 1 if self.red_score > self.blue_score else 0
-        return int(K * G * (W - We)), self.red_score > self.blue_score
+        W = 0.5 if self.red_score == self.blue_score else (1 if self.red_score > self.blue_score else 0)
+        return int(K * G * (W - We)), W
 
     def save(self, *args, **kwargs):
-        self.points, is_red_winner = self.calculate_points()
-        self.red_att.after_match_update(self.points, is_red_winner, True)
-        self.red_def.after_match_update(self.points, is_red_winner, False)
-        self.blue_att.after_match_update(-self.points, not is_red_winner, True)
-        self.blue_def.after_match_update(-self.points, not is_red_winner, False)
+        self.points, winner = self.calculate_points()
+        self.update_players(winner)
         super(Match, self).save(*args, **kwargs)
 
 
