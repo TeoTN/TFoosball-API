@@ -62,11 +62,11 @@ class Member(models.Model):
 
     @property
     def att_ratio(self):
-        return round(self.offence_played / self.offence_won if self.offence_won > 0 else 0, 2)
+        return round(self.offence_won / self.offence_played if self.offence_played > 0 else 0, 2)
 
     @property
     def def_ratio(self):
-        return round(self.defence_played / self.defence_won if self.defence_won > 0 else 0, 2)
+        return round(self.defence_won / self.defence_played if self.defence_played > 0 else 0, 2)
 
     @property
     def win_ratio(self):
