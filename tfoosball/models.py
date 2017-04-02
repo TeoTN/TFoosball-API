@@ -102,7 +102,7 @@ class Member(models.Model):
         else:
             self.defence_played += 1
 
-    def after_match_update(self, points, result, is_offence):
+    def after_match_update(self, points, result, is_offence, save=True):
         self.exp += points
         self.update_played_games(is_offence)
 
@@ -112,7 +112,8 @@ class Member(models.Model):
             self.update_loser()
 
         self.update_extremes()
-        self.save()
+        if save:
+            self.save()
 
 
 class MatchQuerySet(models.QuerySet):
@@ -169,14 +170,6 @@ class Match(models.Model):
     @property
     def users(self):
         return [self.red_att, self.red_def, self.blue_def, self.blue_att]
-
-    @property
-    def attackers(self):
-        return [self.red_att, self.blue_att]
-
-    @property
-    def defenders(self):
-        return [self.red_def, self.blue_def]
 
     def get_team_result(self, winner):
         if winner == Match.RED:
