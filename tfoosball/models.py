@@ -72,11 +72,8 @@ class Member(models.Model):
     def win_ratio(self):
         return round(self.won / self.played if self.played > 0 else 0, 2)
 
-    def get_latest_matches(self):
-        latest = Match.objects.all()
-        latest = latest.filter(Q(red_att=self.id) | Q(red_def=self.id) | Q(blue_att=self.id) | Q(blue_def=self.id))
-        latest = latest.order_by('-date')
-        return latest
+    def get_matches(self):
+        return Match.objects.filter(Q(red_att=self.id) | Q(red_def=self.id) | Q(blue_att=self.id) | Q(blue_def=self.id))
 
     def update_extremes(self):
         self.win_streak = max(self.curr_win_streak, self.win_streak)

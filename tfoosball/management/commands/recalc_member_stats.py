@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from tfoosball.models import Match, Member
+from tfoosball.models import Member
 
 
 class Command(BaseCommand):
@@ -17,7 +17,7 @@ class Command(BaseCommand):
         member.exp = 1000
 
     def update_member(self, member):
-        matches = member.get_latest_matches().order_by('date')
+        matches = member.get_matches().order_by('date')
         for match in matches:
             _, winner = match.calculate_points()
             red_result, blue_result = match.get_team_result(winner)
