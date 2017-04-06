@@ -28,6 +28,9 @@ class Member(models.Model):
     WINNER = 1
     LOSER = 0
 
+    class Meta:
+        unique_together = (('team', 'username'),)
+
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     username = models.CharField(max_length=14, blank=False, null=False)
