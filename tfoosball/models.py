@@ -32,7 +32,7 @@ class Member(models.Model):
         unique_together = (('team', 'username'),)
 
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, blank=True, null=True)
     username = models.CharField(max_length=14, blank=False, null=False)
     exp = models.IntegerField(blank=False, null=False, default=1000)
     offence_won = models.IntegerField(default=0)
@@ -114,6 +114,11 @@ class Member(models.Model):
         self.update_extremes()
         if save:
             self.save()
+
+
+class PlayerPlaceholder(models.Model):
+    member = models.ForeignKey(Member, related_name='member')
+    email = models.EmailField()
 
 
 class MatchQuerySet(models.QuerySet):
