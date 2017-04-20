@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q, Func
 from django.core.validators import RegexValidator
@@ -119,6 +120,12 @@ class Member(models.Model):
 class PlayerPlaceholder(models.Model):
     member = models.ForeignKey(Member, related_name='member')
     email = models.EmailField()
+
+    def validate_unique(self, exclude=None):
+        super().validate_unique(exclude)
+        is_not_unique = PlayerPlaceholder.objects.filter(email=self.email, member__team=self.member.team).exists()
+        if is_not_unique:
+            raise ValidationError('Player is already expected to be assigned to the team')
 
 
 class MatchQuerySet(models.QuerySet):
