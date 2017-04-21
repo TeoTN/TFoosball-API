@@ -127,6 +127,10 @@ class PlayerPlaceholder(models.Model):
         if is_not_unique:
             raise ValidationError('Player is already expected to be assigned to the team')
 
+    def save(self, *args, **kwargs):
+        self.validate_unique()
+        return super().save(*args, **kwargs)
+
 
 class MatchQuerySet(models.QuerySet):
     def by_team(self, team_id):
