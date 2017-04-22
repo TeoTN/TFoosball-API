@@ -4,22 +4,11 @@ import datetime
 
 
 class UserImporter:
-    @staticmethod
-    def create_member(username, email, team):
-        member = Member.objects.create(team=team, username=username, is_accepted=True)
-        try:
-            player = Player.objects.get(email=email)
-        except:
-            PlayerPlaceholder.objects.create(member=member, email=email)
-        else:
-            member.player = player
-            member.save()
-        return member
 
     @staticmethod
     def get_member(line, team):
         db_id, username, email, *_ = line.split(' ')
-        return db_id, UserImporter.create_member(username, email, team)
+        return db_id, Member.create_member(username, email, team, is_accepted=True)
 
     @staticmethod
     def run(team):
@@ -51,5 +40,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         team, _ = Team.objects.get_or_create(name='RKS Brajdol', domain='brajdol')
-        mi = MatchImporter(team)
+        mi = MatchImporter(team.id)
         mi.run()
