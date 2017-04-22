@@ -1,0 +1,10 @@
+[
+{
+    "model": "tfoosball.playerplaceholder",
+    "pk": 1,
+    "fields": {
+        "member": 8,
+        "email": "some.mail@mail.com"
+    }
+}
+]

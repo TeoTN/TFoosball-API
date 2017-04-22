@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q, Func
 from django.core.validators import RegexValidator
@@ -32,7 +33,7 @@ class Member(models.Model):
         unique_together = (('team', 'username'),)
 
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, blank=True, null=True)
     username = models.CharField(max_length=14, blank=False, null=False)
     exp = models.IntegerField(blank=False, null=False, default=1000)
     offence_won = models.IntegerField(default=0)
@@ -114,6 +115,21 @@ class Member(models.Model):
         self.update_extremes()
         if save:
             self.save()
+
+
+class PlayerPlaceholder(models.Model):
+    member = models.ForeignKey(Member, related_name='member')
+    email = models.EmailField()
+
+    def validate_unique(self, exclude=None):
+        super().validate_unique(exclude)
+        is_not_unique = PlayerPlaceholder.objects.filter(email=self.email, member__team=self.member.team).exists()
+        if is_not_unique:
+            raise ValidationError('Player is already expected to be assigned to the team')
+
+    def save(self, *args, **kwargs):
+        self.validate_unique()
+        return super().save(*args, **kwargs)
 
 
 class MatchQuerySet(models.QuerySet):
