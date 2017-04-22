@@ -116,6 +116,18 @@ class Member(models.Model):
         if save:
             self.save()
 
+    @staticmethod
+    def create_member(username, email, team_id, is_accepted=True):
+        member = Member.objects.create(team_id=team_id, username=username, is_accepted=is_accepted)
+        try:
+            player = Player.objects.get(email=email)
+        except Player.DoesNotExist:
+            PlayerPlaceholder.objects.create(member=member, email=email)
+        else:
+            member.player = player
+            member.save()
+        return member
+
 
 class PlayerPlaceholder(models.Model):
     member = models.ForeignKey(Member, related_name='member')
