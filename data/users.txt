@@ -1,0 +1,28 @@
+1 Holda piotr.holda@bright-it.com
+2 Jupblb mpkielbowicz@gmail.com
+3 Maciek maciej.mickiewicz@bright-it.com
+4 Marcik marcin.kardas@bright-it.com
+5 Olek aleksander.boruch-gruszecki@bright-it.com
+6 Petrov piotr.staniow@bright-it.com
+7 Rybycy michal.robaszynski@bright-it.com
+8 Vani tomasz.struminski@bright-it.com
+9 Xander aleksander.boron@bright-it.com
+10 Misiek michal.koza@bright-it.com
+11 Czapel piotr.czapla@bright-it.com
+12 Ania anna.machalska@bright-it.com
+13 Basia barbara.jastrzebska@bright-it.com
+14 Gryczek arkadiusz.gryczek@bright-it.com
+15 Andrzej andrzej.blaszczyk@bright-it.com
+16 Dagmara dagmara.zolnieruk@bright-it.com
+18 Tomekk tomasz.lizurej@bright-it.com
+19 Klaus klaus.unterkircher@bright-it.com
+20 Lena anna.lich@bright-it.com
+21 Tomek tomasz.hupalo@bright-it.com
+22 Kaczucha michal.kaczergis@bright-it.com
+23 Sep jakub.blaszczyk@bright-it.com
+24 Martyna martyna.buczek@bright-it.com
+25 Dacjan dacjan.naumowicz@bright-it.com [delete]
+26 Zbyszek zbigniew.dobosiewicz@bright-it.com
+27 m.herlender michal.herlender@bright-it.com
+28 Robert robert.walerowicz@bright-it.com [delete]
+29 Radek radek.medal@bright-it.com
