@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from tfoosball.models import Player, Member, PlayerPlaceholder, Team, Match
+from tfoosball.models import Member, Team, Match
 import datetime
 
 
