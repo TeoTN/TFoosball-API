@@ -13,7 +13,6 @@
         "is_staff": true,
         "is_active": true,
         "date_joined": "2016-12-11T18:35:50Z",
-        "hidden": false,
         "groups": [],
         "user_permissions": []
     }

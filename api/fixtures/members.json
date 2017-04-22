@@ -18,7 +18,8 @@
         "lowest_exp": 980,
         "highest_exp": 1059,
         "is_team_admin": false,
-        "is_accepted": true
+        "is_accepted": true,
+        "hidden": false
     }
 },
 {
@@ -40,7 +41,8 @@
         "lowest_exp": 948,
         "highest_exp": 1041,
         "is_team_admin": false,
-        "is_accepted": true
+        "is_accepted": true,
+        "hidden": false
     }
 },
 {
@@ -62,7 +64,8 @@
         "lowest_exp": 927,
         "highest_exp": 1000,
         "is_team_admin": false,
-        "is_accepted": true
+        "is_accepted": true,
+        "hidden": false
     }
 },
 {
@@ -84,7 +87,8 @@
         "lowest_exp": 1000,
         "highest_exp": 1054,
         "is_team_admin": true,
-        "is_accepted": true
+        "is_accepted": true,
+        "hidden": false
     }
 },
 {
@@ -106,7 +110,8 @@
         "lowest_exp": 1000,
         "highest_exp": 1000,
         "is_team_admin": false,
-        "is_accepted": false
+        "is_accepted": false,
+        "hidden": false
     }
 },
 {
@@ -128,7 +133,8 @@
         "lowest_exp": 1000,
         "highest_exp": 1000,
         "is_team_admin": false,
-        "is_accepted": true
+        "is_accepted": true,
+        "hidden": false
     }
 },
 {
@@ -150,7 +156,8 @@
         "lowest_exp": 1000,
         "highest_exp": 1023,
         "is_team_admin": false,
-        "is_accepted": true
+        "is_accepted": true,
+        "hidden": false
     }
 },
 {
@@ -172,7 +179,8 @@
         "lowest_exp": 1000,
         "highest_exp": 1023,
         "is_team_admin": false,
-        "is_accepted": true
+        "is_accepted": true,
+        "hidden": false
     }
 },
 {
@@ -194,7 +202,8 @@
         "lowest_exp": 977,
         "highest_exp": 1000,
         "is_team_admin": false,
-        "is_accepted": true
+        "is_accepted": true,
+        "hidden": false
     }
 },
 {
@@ -216,7 +225,8 @@
         "lowest_exp": 977,
         "highest_exp": 1000,
         "is_team_admin": false,
-        "is_accepted": true
+        "is_accepted": true,
+        "hidden": false
     }
 },
 {
@@ -238,7 +248,8 @@
         "lowest_exp": 1000,
         "highest_exp": 1000,
         "is_team_admin": true,
-        "is_accepted": true
+        "is_accepted": true,
+        "hidden": false
     }
 },
 {
@@ -260,7 +271,8 @@
         "lowest_exp": 1000,
         "highest_exp": 1000,
         "is_team_admin": true,
-        "is_accepted": true
+        "is_accepted": true,
+        "hidden": false
     }
 },
 {
@@ -282,7 +294,8 @@
         "lowest_exp": 1000,
         "highest_exp": 1014,
         "is_team_admin": false,
-        "is_accepted": true
+        "is_accepted": true,
+        "hidden": false
     }
 }
 ]

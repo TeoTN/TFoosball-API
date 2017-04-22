@@ -21,7 +21,6 @@ class Team(models.Model):
 
 
 class Player(AbstractUser):
-    hidden = models.BooleanField(default=False)
     teams = models.ManyToManyField(Team, through='Member')
 
 
@@ -48,6 +47,7 @@ class Member(models.Model):
     highest_exp = models.IntegerField(default=1000)
     is_team_admin = models.BooleanField(default=False)
     is_accepted = models.BooleanField(default=False)
+    hidden = models.BooleanField(default=False)
 
     def __str__(self):
         return '{0} ({1})'.format(self.username, self.team.name)
