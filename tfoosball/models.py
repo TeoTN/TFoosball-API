@@ -117,15 +117,15 @@ class Member(models.Model):
             self.save()
 
     @staticmethod
-    def create_member(username, email, team_id, is_accepted=True):
-        member = Member.objects.create(team_id=team_id, username=username, is_accepted=is_accepted)
+    def create_member(username, email, team_id, is_accepted=False):
+        member_data = {'team_id': team_id, 'username': username, 'is_accepted': is_accepted}
         try:
             player = Player.objects.get(email=email)
         except Player.DoesNotExist:
+            member = Member.objects.create(**member_data)
             PlayerPlaceholder.objects.create(member=member, email=email)
         else:
-            member.player = player
-            member.save()
+            member = Member.objects.create(**member_data, player=player)
         return member
 
 
