@@ -1,15 +1,12 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from .models import Match, ExpHistory, Player, PlayerPlaceholder
+from .models import Match, Player, PlayerPlaceholder
 from allauth.account.signals import user_signed_up
 
 
 @receiver(post_save, sender=Match)
 def store_exp_history(sender, instance, *args, **kwargs):
-    ExpHistory.objects.create(player=instance.red_att, exp=instance.red_att.exp, match=instance)
-    ExpHistory.objects.create(player=instance.red_def, exp=instance.red_def.exp, match=instance)
-    ExpHistory.objects.create(player=instance.blue_def, exp=instance.blue_def.exp, match=instance)
-    ExpHistory.objects.create(player=instance.blue_att, exp=instance.blue_att.exp, match=instance)
+    Match.create_exp_history(instance)
 
 
 @receiver(post_delete, sender=Match)

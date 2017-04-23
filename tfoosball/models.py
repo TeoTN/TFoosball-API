@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import Q, Func
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
+import datetime
 
 
 class Round(Func):
@@ -199,6 +200,18 @@ class Match(models.Model):
     def users(self):
         return [self.red_att, self.red_def, self.blue_def, self.blue_att]
 
+    @staticmethod
+    def create_exp_history(match):
+        for player in match.users:
+            try:
+                eh = ExpHistory.objects.get(player=player, date=match.date)
+            except ExpHistory.DoesNotExist:
+                eh = ExpHistory(player=player, date=match.date, matches_played=0)
+            eh.exp = player.exp
+            eh.match = match
+            eh.matches_played += 1
+            eh.save()
+
     def get_team_result(self, winner):
         if winner == Match.RED:
             return Member.WINNER, Member.LOSER
@@ -232,7 +245,16 @@ class Match(models.Model):
 
 
 class ExpHistory(models.Model):
+    class Meta:
+        unique_together = (('player', 'date'),)
+
     player = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='exp_history')
-    date = models.DateField(auto_now_add=True, blank=True)
+    date = models.DateField(blank=True)
     match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='exp_history', blank=True, null=True)
     exp = models.IntegerField()
+    matches_played = models.IntegerField()
+
+    def save(self, *args, **kwargs):
+        if not self.date:
+            self.date = datetime.datetime.now().date()
+        super().save(*args, **kwargs)
