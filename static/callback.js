@@ -43,8 +43,11 @@ const request = {
 $.ajax(request)
     .then(
         r => {
+            const expires_at = new Date();
+            expires_at.setSeconds(expires_at.getSeconds() + parseInt(params.expires_in));
             const data = {
                 token: r.key,
+                expires_at,
             };
             window.opener.postMessage(data, cb_params.FRONTEND_CLIENT);
             setTimeout(() => window.close(), 1000);

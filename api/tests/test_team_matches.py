@@ -31,11 +31,12 @@ class TeamMatchesEndpointTestCase(TestCase):
         self.assertEqual(response_data['count'], matches.count(), 'expected correct number of dev team matches')
 
     def test_get_item(self):
-        match = Match.objects.get(pk=1)
-        request = factory.get('/api/teams/{0}/matches/1/'.format(self.dev_team.id))
+        match_id = 9
+        match = Match.objects.get(pk=match_id)
+        request = factory.get('/api/teams/{0}/matches/{1}/'.format(self.dev_team.id, match_id))
         force_authenticate(request, user=self.admin_user)
         view = MatchViewSet.as_view({'get': 'retrieve'})
-        response = view(request, parent_lookup_team=str(self.dev_team.id), pk='1')
+        response = view(request, parent_lookup_team=str(self.dev_team.id), pk=str(match_id))
         response.render()
         expected_data = MatchSerializer(match).data
         self.assertEqual(response.status_code, status.HTTP_200_OK, 'expected HTTP 200')
@@ -62,7 +63,8 @@ class TeamMatchesEndpointTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE, 'expected HTTP 406 - Not acceptable')
 
     def test_count_points(self):
-        request = factory.get('/api/teams/{0}/matches/points/?red_att=8&red_def=8&blue_att=8&blue_def=8'.format(self.dev_team.id))
+        request = factory.get(
+            '/api/teams/{0}/matches/points/?red_att=8&red_def=8&blue_att=8&blue_def=8'.format(self.dev_team.id))
         force_authenticate(request, user=self.admin_user)
         view = MatchViewSet.as_view({'get': 'points'})
         response = view(request, parent_lookup_team=str(self.dev_team.id))

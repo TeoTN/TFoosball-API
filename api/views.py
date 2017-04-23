@@ -105,7 +105,7 @@ class MemberViewSet(NestedViewSetMixin, ModelViewSet):
             return Member.objects.all()
         if team:
             return Member.objects.filter(
-                player__hidden=False,
+                hidden=False,
                 is_accepted=is_accepted,
                 team__pk=team
             )
@@ -179,4 +179,3 @@ class PlayerViewSet(ModelViewSet):
             return Response(model_to_dict(member), status=status.HTTP_201_CREATED)
         err_msg = 'Player {0} already is a member of {1} team'.format(member.username, team.name)
         return Response({'detail': err_msg}, status=status.HTTP_400_BAD_REQUEST)
-

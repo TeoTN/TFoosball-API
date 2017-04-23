@@ -11,7 +11,7 @@ class Command(BaseCommand):
 
     def upload_users(self):
         with open('tfoosball/fixtures/users.json', 'r') as fh:
-             users = json.load(fh)
+            users = json.load(fh)
 
         for user in users:
             player = Player.objects.create_user(**user)
