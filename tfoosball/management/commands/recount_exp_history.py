@@ -9,46 +9,23 @@ class Command(BaseCommand):
         ExpHistory.objects.all().delete()
 
     def init_history(self):
-        for member in Member.objects.all():
-            eh = ExpHistory(player=member, exp=1000)
-            eh.save()
-            eh.date = member.player.date_joined
-            eh.save()
+        for member in Member.objects.exclude(player__isnull=True):
+            ExpHistory.objects.create(player=member, exp=1000, date=member.player.date_joined)
             member.exp = 1000
             member.save()
 
+    def update_members_exp(self, match):
+        for member in match.users[:2]:
+            member.exp += match.points
+            member.save()
+        for member in match.users[2:]:
+            member.exp -= match.points
+            member.save()
+
     def create_history(self):
-        def get_points(match, role):
-            return match.points if role == 'red' else -match.points
-
         for match in Match.objects.all().order_by('date'):
-            match.red_att.exp += get_points(match, 'red')
-            match.red_att.save()
-            eh = ExpHistory(player=match.red_att, exp=match.red_att.exp, match=match)
-            eh.save()
-            eh.date = match.date
-            eh.save()
-
-            match.red_def.exp += get_points(match, 'red')
-            match.red_def.save()
-            eh = ExpHistory(player=match.red_def, exp=match.red_def.exp, match=match)
-            eh.save()
-            eh.date = match.date
-            eh.save()
-
-            match.blue_att.exp += get_points(match, 'blue')
-            match.blue_att.save()
-            eh = ExpHistory(player=match.blue_att, exp=match.blue_att.exp, match=match)
-            eh.save()
-            eh.date = match.date
-            eh.save()
-
-            match.blue_def.exp += get_points(match, 'blue')
-            match.blue_def.save()
-            eh = ExpHistory(player=match.blue_def, exp=match.blue_def.exp, match=match)
-            eh.save()
-            eh.date = match.date
-            eh.save()
+            self.update_members_exp(match)
+            Match.create_exp_history(match)
 
     def handle(self, *args, **options):
         self.delete_history()
