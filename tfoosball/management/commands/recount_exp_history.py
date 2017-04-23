@@ -10,7 +10,7 @@ class Command(BaseCommand):
 
     def init_history(self):
         for member in Member.objects.exclude(player__isnull=True):
-            ExpHistory.objects.create(player=member, exp=1000, date=member.player.date_joined)
+            ExpHistory.objects.create(player=member, exp=1000, date=member.player.date_joined, matches_played=0)
             member.exp = 1000
             member.save()
 

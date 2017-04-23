@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from tfoosball.models import Player, Member, Match, Team
-from django.db.models import Avg, Func, Count
+from django.db.models import Avg, Func, Count, F
 
 
 class Round(Func):
@@ -41,8 +41,8 @@ class MemberSerializer(serializers.ModelSerializer):
     def get_exp_history(self, obj):
         return obj.exp_history.all() \
             .values('date')\
-            .annotate(daily_avg=Round(Avg('exp')))\
-            .annotate(amount=Count('date'))\
+            .annotate(daily_avg=F('exp'))\
+            .annotate(amount=F('matches_played'))\
             .order_by('date')
 
     class Meta:

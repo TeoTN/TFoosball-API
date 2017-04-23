@@ -203,8 +203,14 @@ class Match(models.Model):
     @staticmethod
     def create_exp_history(match):
         for player in match.users:
-            ExpHistory.objects.update_or_create(player=player, date=match.date,
-                                                defaults={'exp': player.exp, 'match': match})
+            try:
+                eh = ExpHistory.objects.get(player=player, date=match.date)
+            except ExpHistory.DoesNotExist:
+                eh = ExpHistory(player=player, date=match.date, matches_played=0)
+            eh.exp = player.exp
+            eh.match = match
+            eh.matches_played += 1
+            eh.save()
 
     def get_team_result(self, winner):
         if winner == Match.RED:
@@ -246,6 +252,7 @@ class ExpHistory(models.Model):
     date = models.DateField(blank=True)
     match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='exp_history', blank=True, null=True)
     exp = models.IntegerField()
+    matches_played = models.IntegerField()
 
     def save(self, *args, **kwargs):
         if not self.date:
