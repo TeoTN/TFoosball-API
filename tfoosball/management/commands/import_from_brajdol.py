@@ -3,12 +3,13 @@ from tfoosball.models import Member, Team, Match
 import datetime
 from django.utils import timezone
 
+
 class UserImporter:
 
     @staticmethod
     def get_member(line, team):
         db_id, username, email, *_ = line.split(' ')
-        return db_id, Member.create_member(username, email, team, is_accepted=True)
+        return db_id, Member.create_member(username, email.rstrip(), team, is_accepted=True)
 
     @staticmethod
     def run(team):
