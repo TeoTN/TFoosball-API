@@ -203,8 +203,10 @@ class Match(models.Model):
     @staticmethod
     def create_exp_history(match):
         for player in match.users:
-            ExpHistory.objects.update_or_create(player=player, date=match.date,
-                                                defaults={'exp': player.exp, 'match': match})
+            ExpHistory.objects.update_or_create(
+                player=player, date=match.date,
+                defaults={'exp': player.exp, 'match': match}
+            )
 
     def get_team_result(self, winner):
         if winner == Match.RED:
