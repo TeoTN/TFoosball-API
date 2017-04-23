@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models import Q, Func
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
-import datetime
+from django.utils import timezone
 
 
 class Round(Func):
@@ -190,7 +190,7 @@ class Match(models.Model):
     red_def = models.ForeignKey(Member, related_name='red_def')
     blue_att = models.ForeignKey(Member, related_name='blue_att')
     blue_def = models.ForeignKey(Member, related_name='blue_def')
-    date = models.DateTimeField(auto_now_add=True, blank=True)
+    date = models.DateTimeField(blank=True)
     red_score = models.IntegerField()
     blue_score = models.IntegerField()
     points = models.IntegerField()
@@ -241,6 +241,8 @@ class Match(models.Model):
     def save(self, *args, **kwargs):
         self.points, winner = self.calculate_points()
         self.update_players(winner)
+        if not self.date:
+            self.date = timezone.now()
         super(Match, self).save(*args, **kwargs)
 
 
@@ -256,5 +258,5 @@ class ExpHistory(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.date:
-            self.date = datetime.datetime.now().date()
+            self.date = timezone.now().date()
         super().save(*args, **kwargs)
