@@ -158,7 +158,7 @@ class PlayerViewSet(ModelViewSet):
         queryset = Player.objects.all()
         prefix = self.request.query_params.get('email_prefix', None)
         if prefix:
-            queryset = queryset.filter(email__istartswith=prefix)
+            queryset = queryset.filter(email__istartswith=prefix)[:5]
         return queryset
 
     @detail_route(methods=['post'])
