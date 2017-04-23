@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from tfoosball.models import Player, Member, Match, Team
-from django.db.models import Avg, Func, Count, F
+from django.db.models import Func, F
 
 
 class Round(Func):
