@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from tfoosball.models import Member, Team, Match
 import datetime
-
+from django.utils import timezone
 
 class UserImporter:
 
@@ -22,12 +22,14 @@ class MatchImporter:
 
     def __init__(self, team):
         self.members = UserImporter().run(team)
+        self.curr_tz = timezone.get_current_timezone()
 
     def process_line(self, line):
         players = [self.members[id] for id in line[:4]]
         scores = [int(line[4]), int(line[5])]
-        date = [datetime.datetime.strptime(line[6].rstrip(), "%Y-%m-%d %H:%M:%S")]
-        match_data = {k: v for k, v in zip(self.fields, players + scores + date)}
+        date = datetime.datetime.strptime(line[6].rstrip(), "%Y-%m-%d %H:%M:%S")
+        date = self.curr_tz.localize(date)
+        match_data = {k: v for k, v in zip(self.fields, players + scores + [date])}
         Match.objects.create(**match_data)
 
     def run(self):
