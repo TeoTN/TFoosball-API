@@ -19,15 +19,39 @@ class MemberModelTest(TestCase):
 
     def test_create_member(self):
         username = 'mr dummy'
-        Member.create_member(username, self.dummy_member.player.email, self.new_team_id)
+        _, is_placeholder = Member.create_member(username, self.dummy_member.player.email, self.new_team_id)
         member = Member.objects.get(username=username, team=self.new_team_id)
         self.assertEqual(member.player, self.dummy_member.player)
         with self.assertRaises(PlayerPlaceholder.DoesNotExist):
             PlayerPlaceholder.objects.get(member=member)
+        self.assertFalse(is_placeholder)
+
+    def test_create_existing_member(self):
+        username = 'mr dummy'
+        _, is_placeholder = Member.create_member(username, self.dummy_member.player.email, self.new_team_id)
+        member = Member.objects.get(username=username, team=self.new_team_id)
+        self.assertEqual(member.player, self.dummy_member.player)
+        with self.assertRaises(PlayerPlaceholder.DoesNotExist):
+            PlayerPlaceholder.objects.get(member=member)
+        self.assertFalse(is_placeholder)
+        with self.assertRaises(IntegrityError):
+            Member.create_member(username, self.dummy_member.player.email, self.new_team_id)
 
     def test_create_member_placeholder(self):
         email = 'newbie@mail.com'
-        member = Member.create_member('newbie', email, self.new_team_id)
+        member, is_placeholder = Member.create_member('newbie', email, self.new_team_id)
         self.assertIsNone(member.player)
         placeholder = PlayerPlaceholder.objects.get(member=member)
         self.assertEqual(placeholder.email, email)
+        self.assertTrue(is_placeholder)
+
+    def test_create_existing_member_placeholder(self):
+        email = 'newbie@mail.com'
+        member, is_placeholder = Member.create_member('newbie', email, self.new_team_id)
+        self.assertIsNone(member.player)
+        placeholder = PlayerPlaceholder.objects.get(member=member)
+        self.assertEqual(placeholder.email, email)
+        self.assertTrue(is_placeholder)
+        with self.assertRaises(IntegrityError):
+            Member.create_member('newbie', email, self.new_team_id)
+

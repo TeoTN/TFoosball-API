@@ -125,9 +125,11 @@ class Member(models.Model):
         except Player.DoesNotExist:
             member = Member.objects.create(**member_data)
             PlayerPlaceholder.objects.create(member=member, email=email)
+            is_placeholder = True
         else:
             member = Member.objects.create(**member_data, player=player)
-        return member
+            is_placeholder = False
+        return member, is_placeholder
 
 
 class PlayerPlaceholder(models.Model):

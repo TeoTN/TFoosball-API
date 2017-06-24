@@ -1,3 +1,8 @@
+from smtplib import SMTPException
+from uuid import uuid4
+
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
 from django.db.models import F
@@ -7,9 +12,18 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_extensions.mixins import NestedViewSetMixin
+
+from api.emailing import send_invitation
 from tfoosball.models import Member, Match, Player, Team
 from .serializers import MatchSerializer, MemberSerializer, TeamSerializer, PlayerSerializer
-from .permissions import MemberPermissions
+from .permissions import MemberPermissions, AccessOwnTeamOnly
+
+
+def displayable(message):
+    return {
+        'shouldDisplay': True,
+        'message': message,
+    }
 
 
 class StandardPagination(PageNumberPagination):
@@ -90,6 +104,35 @@ class TeamViewSet(NestedViewSetMixin, ModelViewSet):
             data='You have already requested membership in team {0}'.format(team.name),
             status=status.HTTP_409_CONFLICT
         )
+
+    @detail_route(methods=['post'], permission_classes=[AccessOwnTeamOnly])
+    def invite(self, request, pk=None):
+        email = request.data.get('email', None)
+        if not email:
+            return Response(
+                displayable('You haven\'t provided an email'),
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            Member.create_member(uuid4(), email=email, team_id=pk, is_accepted=True)
+        except (IntegrityError, ValidationError):
+            return Response(
+                displayable('The email {0} was already sent an invitation'.format(email)),
+                status=status.HTTP_409_CONFLICT
+            )
+        else:
+            try:
+                send_invitation(email)
+            except SMTPException:
+                return Response(
+                    'Unknown error while sending an invitation',
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )  # TODO Revert member
+            else:
+                return Response(
+                    displayable('Invitation was sent to {0}'.format(email)),
+                    status=status.HTTP_201_CREATED
+                )
 
 
 class MemberViewSet(NestedViewSetMixin, ModelViewSet):
