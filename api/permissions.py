@@ -8,7 +8,12 @@ class AccessOwnTeamOnly(permissions.BasePermission):
         accessed_team = view.kwargs.get('team', None)
         if not accessed_team:
             return True
-        return request.user.member_set.filter(team__id=accessed_team).count() > 0
+        return request.user.member_set.filter(team__id=accessed_team).exists()
+
+    def has_object_permission(self, request, view, obj):
+        if request.user.is_staff:
+            return True
+        return request.user.member_set.filter(team__id=obj.pk).exists()
 
 
 class MemberPermissions(permissions.BasePermission):

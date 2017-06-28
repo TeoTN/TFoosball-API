@@ -135,7 +135,8 @@ class Member(models.Model):
         return member, is_placeholder
 
     def generate_activation_code(self):
-        value = '{0}:{1}'.format(self.player.email, self.team.name)
+        email = self.player.email if self.player else self.placeholder.first().email
+        value = '{0}:{1}'.format(email, self.team.name)
         signer = TimestampSigner()
         self.activation_code = ':'.join(signer.sign(value).split(':')[2:])
         self.save()
@@ -160,7 +161,7 @@ class Member(models.Model):
 
 
 class PlayerPlaceholder(models.Model):
-    member = models.ForeignKey(Member, related_name='member')
+    member = models.ForeignKey(Member, related_name='placeholder')
     email = models.EmailField()
 
     def validate_unique(self, exclude=None):

@@ -104,7 +104,7 @@ class TeamViewSet(NestedViewSetMixin, ModelViewSet):
 
     @detail_route(methods=['post'], permission_classes=[AccessOwnTeamOnly])
     def invite(self, request, pk=None):
-        username = request.data.get('username', str(uuid4())[:14]) # TODO UUID() Object is not subscriptable
+        username = request.data.get('username', str(uuid4())[:14])
         email = request.data.get('email', None)
         team = Team.objects.get(pk=pk)
         if not email:
