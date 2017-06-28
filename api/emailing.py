@@ -1,13 +1,14 @@
 from django.core.mail import send_mail
 
 
-def send_invitation(email):
+def send_invitation(email, activation_code):
     send_mail(
         subject='[Invitation] Rethink the way you play table football!',
         message='''
             Hi!
-            You have been invited to TFoosball. Join us here {0}
-        '''.format('https://tfoosball.herokuapp.com/'),
+            You have been invited to TFoosball. Join us here: https://tfoosball.herokuapp.com/accept/{0}/
+            The service is not active yet, thank you for your patience.
+        '''.format(activation_code),
         # html_message='Here is the message.',
         from_email='tfoosball@piotrstaniow.pl',
         recipient_list=[email],

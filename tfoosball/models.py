@@ -1,4 +1,6 @@
+from datetime import timedelta
 from django.core.exceptions import ValidationError
+from django.core.signing import TimestampSigner
 from django.db import models
 from django.db.models import Q, Func
 from django.core.validators import RegexValidator
@@ -49,6 +51,7 @@ class Member(models.Model):
     is_team_admin = models.BooleanField(default=False)
     is_accepted = models.BooleanField(default=False)
     hidden = models.BooleanField(default=False)
+    activation_code = models.CharField(max_length=40, default='')
 
     def __str__(self):
         return '{0} ({1})'.format(self.username, self.team.name)
@@ -118,18 +121,42 @@ class Member(models.Model):
             self.save()
 
     @staticmethod
-    def create_member(username, email, team_id, is_accepted=False):
+    def create_member(username, email, team_id, is_accepted=False, **kwargs):
         member_data = {'team_id': team_id, 'username': username, 'is_accepted': is_accepted}
+        member_data.update(kwargs)
         try:
             player = Player.objects.get(email=email)
-        except Player.DoesNotExist:
-            member = Member.objects.create(**member_data)
-            PlayerPlaceholder.objects.create(member=member, email=email)
-            is_placeholder = True
-        else:
             member = Member.objects.create(**member_data, player=player)
             is_placeholder = False
+        except Player.DoesNotExist:
+            member = Member.objects.create(**member_data)
+            PlayerPlaceholder.objects.get_or_create(member=member, email=email)
+            is_placeholder = True
         return member, is_placeholder
+
+    def generate_activation_code(self):
+        value = '{0}:{1}'.format(self.player.email, self.team.name)
+        signer = TimestampSigner()
+        self.activation_code = ':'.join(signer.sign(value).split(':')[2:])
+        self.save()
+        return self.activation_code
+
+    def activate(self, code):
+        """
+        Function will activate member with given code if it's valid and not expired.
+        :raises signing.BadSignature: Activation code was tampered
+        :raises signing.SignatureExpired: Activation code has expired after 48h
+        :param code: activation code, signature
+        :return: None
+        """
+        if self.activation_code == '':
+            raise ValidationError('The member is already activated')
+        signed_code = '{0}:{1}:{2}'.format(self.player.email, self.team.name, code)
+        signer = TimestampSigner()
+        signer.unsign(signed_code, max_age=timedelta(days=2))
+        self.hidden = False
+        self.activation_code = ''
+        self.save()
 
 
 class PlayerPlaceholder(models.Model):

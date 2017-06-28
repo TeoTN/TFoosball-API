@@ -95,3 +95,4 @@ ENV/
 # tfoosball/db.sqlite3
 dump.rdb
 
+tfoosball/emails.log

@@ -1,8 +1,5 @@
 from smtplib import SMTPException
 from uuid import uuid4
-
-from django.core.exceptions import ValidationError
-from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
 from django.db.models import F
@@ -107,32 +104,35 @@ class TeamViewSet(NestedViewSetMixin, ModelViewSet):
 
     @detail_route(methods=['post'], permission_classes=[AccessOwnTeamOnly])
     def invite(self, request, pk=None):
+        username = request.data.get('username', str(uuid4())[:14]) # TODO UUID() Object is not subscriptable
         email = request.data.get('email', None)
+        team = Team.objects.get(pk=pk)
         if not email:
             return Response(
                 displayable('You haven\'t provided an email'),
                 status=status.HTTP_400_BAD_REQUEST
             )
-        try:
-            Member.create_member(uuid4(), email=email, team_id=pk, is_accepted=True)
-        except (IntegrityError, ValidationError):
+        is_member = team.member_set.filter(player__email=email).exists()
+        if is_member:
             return Response(
-                displayable('The email {0} was already sent an invitation'.format(email)),
+                displayable('User of email {0} is already a member of {1}'.format(email, team.name)),
                 status=status.HTTP_409_CONFLICT
             )
+        member, placeholder = Member.create_member(username, email, pk, is_accepted=True, hidden=True)
+        activation_code = member.generate_activation_code()
+        try:
+            send_invitation(email, activation_code)
+        except SMTPException:
+            return Response(
+                'Unknown error while sending an invitation, please try again.',
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+            # TODO Revert member
         else:
-            try:
-                send_invitation(email)
-            except SMTPException:
-                return Response(
-                    'Unknown error while sending an invitation',
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )  # TODO Revert member
-            else:
-                return Response(
-                    displayable('Invitation was sent to {0}'.format(email)),
-                    status=status.HTTP_201_CREATED
-                )
+            return Response(
+                displayable('Invitation was sent to {0}'.format(email)),
+                status=status.HTTP_201_CREATED
+            )
 
 
 class MemberViewSet(NestedViewSetMixin, ModelViewSet):
