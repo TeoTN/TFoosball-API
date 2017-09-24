@@ -54,4 +54,3 @@ class MemberModelTest(TestCase):
         self.assertTrue(is_placeholder)
         with self.assertRaises(IntegrityError):
             Member.create_member('newbie', email, self.new_team_id)
-

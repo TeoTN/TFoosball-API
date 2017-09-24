@@ -1,5 +1,3 @@
-import json
-
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import force_authenticate, APIRequestFactory
@@ -17,7 +15,6 @@ class TeamInviteTestCase(TestCase):
         self.member_player = Player.objects.get(username='pflores6')
         self.non_member_player = Player.objects.get(username='phawkins1')
         self.url = '/api/teams/{0}/invite/'.format(self.dev_team.pk)
-
 
     def test_request_by_non_member(self):
         request = factory.post(self.url)
