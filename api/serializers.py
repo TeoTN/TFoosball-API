@@ -50,7 +50,7 @@ class MemberSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'username', 'email', 'first_name', 'last_name', 'exp', 'played', 'att_ratio', 'def_ratio',
             'win_ratio', 'win_streak', 'lose_streak', 'curr_lose_streak', 'curr_win_streak', 'lowest_exp',
-            'highest_exp', 'exp_history', 'is_accepted',
+            'highest_exp', 'exp_history', 'is_accepted', 'hidden',
         )
 
 

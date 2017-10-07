@@ -144,7 +144,8 @@ class MemberViewSet(NestedViewSetMixin, ModelViewSet):
         team = self.kwargs.get('parent_lookup_team', None)
         is_accepted = self.request.query_params.get('is_accepted', True)
         pk = self.kwargs.get('pk', None)
-        if pk:
+        username = self.request.query_params.get('username', None)
+        if pk or username:
             return Member.objects.all()
         if team:
             return Member.objects.filter(
