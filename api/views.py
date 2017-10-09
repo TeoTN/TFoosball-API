@@ -1,5 +1,8 @@
 from smtplib import SMTPException
 from uuid import uuid4
+
+from django.core.exceptions import ValidationError
+from django.core.signing import BadSignature, SignatureExpired
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
 from django.db.models import F
@@ -102,16 +105,34 @@ class TeamViewSet(NestedViewSetMixin, ModelViewSet):
             status=status.HTTP_409_CONFLICT
         )
 
+    @list_route(methods=['post'])
+    def accept(self, request):
+        activation_code = request.data.get('activation_code', None)
+        if not activation_code:
+            return Response(displayable('Unable to activate user'), status=status.HTTP_400_BAD_REQUEST)
+        print(activation_code)
+        email, team_name, token, token2 = activation_code.split(':')
+        if request.user.email != email:
+            return Response(displayable('Unable to activate user'), status=status.HTTP_400_BAD_REQUEST)
+        try:
+            member = Member.objects.get(activation_code=activation_code)
+            member.activate()
+        except (ValidationError, BadSignature):
+            return Response(displayable('Unable to activate user'), status=status.HTTP_400_BAD_REQUEST)
+        except SignatureExpired:
+            return Response(
+                displayable('Activation code has expired after 48 hours'),
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return Response(displayable('User activated'), status=status.HTTP_201_CREATED)
+
     @detail_route(methods=['post'], permission_classes=[AccessOwnTeamOnly])
     def invite(self, request, pk=None):
-        username = request.data.get('username', str(uuid4())[:14])
+        username = request.data.get('username', f'user-{str(uuid4())[:8]}')  # TODO Better default username
         email = request.data.get('email', None)
         team = Team.objects.get(pk=pk)
         if not email:
-            return Response(
-                displayable('You haven\'t provided an email'),
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response(displayable('You haven\'t provided an email'),status=status.HTTP_400_BAD_REQUEST)
         is_member = team.member_set.filter(player__email=email).exists()
         if is_member:
             return Response(

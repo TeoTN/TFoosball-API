@@ -51,7 +51,7 @@ class Member(models.Model):
     is_team_admin = models.BooleanField(default=False)
     is_accepted = models.BooleanField(default=False)
     hidden = models.BooleanField(default=False)
-    activation_code = models.CharField(max_length=40, default='')
+    activation_code = models.CharField(max_length=40, default='', blank=True)
 
     def __str__(self):
         return '{0} ({1})'.format(self.username, self.team.name)
@@ -138,23 +138,22 @@ class Member(models.Model):
         email = self.player.email if self.player else self.placeholder.first().email
         value = '{0}:{1}'.format(email, self.team.name)
         signer = TimestampSigner()
-        self.activation_code = ':'.join(signer.sign(value).split(':')[2:])
+        self.activation_code = signer.sign(value)
         self.save()
         return self.activation_code
 
-    def activate(self, code):
+    def activate(self):
         """
         Function will activate member with given code if it's valid and not expired.
         :raises signing.BadSignature: Activation code was tampered
         :raises signing.SignatureExpired: Activation code has expired after 48h
-        :param code: activation code, signature
+        :raises ValidationError: The member was already activated
         :return: None
         """
         if self.activation_code == '':
             raise ValidationError('The member is already activated')
-        signed_code = '{0}:{1}:{2}'.format(self.player.email, self.team.name, code)
         signer = TimestampSigner()
-        signer.unsign(signed_code, max_age=timedelta(days=2))
+        signer.unsign(self.activation_code, max_age=timedelta(days=2))
         self.hidden = False
         self.activation_code = ''
         self.save()
