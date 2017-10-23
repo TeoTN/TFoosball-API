@@ -274,6 +274,11 @@ class Match(models.Model):
             self.date = timezone.now()
         super(Match, self).save(*args, **kwargs)
 
+    def __str__(self):
+        return f'Match {self.red_def.username} {self.red_att.username} - ' \
+               f'{self.blue_att.username} {self.blue_def.username} ' \
+               f'[{self.red_score} - {self.blue_score}]'
+
 
 class ExpHistory(models.Model):
     class Meta:

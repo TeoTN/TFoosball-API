@@ -1,9 +1,10 @@
+from django.forms import model_to_dict
 from django.test import TestCase
 from rest_framework.test import force_authenticate, APIRequestFactory
 from rest_framework import status
 from api.views import MatchViewSet
 from api.serializers import MatchSerializer
-from tfoosball.models import Player, Team, Match
+from tfoosball.models import Player, Team, Match, Member
 import json
 
 factory = APIRequestFactory()
@@ -14,6 +15,8 @@ class TeamMatchesEndpointTestCase(TestCase):
 
     def setUp(self):
         self.admin_user = Player.objects.get(username='admin')
+        self.user = Player.objects.get(username='pflores6')
+        self.user2 = Player.objects.get(username='blewis0')
         self.dev_team = Team.objects.get(domain='dev')
         self.fields = (
             'id',
@@ -72,3 +75,19 @@ class TeamMatchesEndpointTestCase(TestCase):
         response_data = json.loads(str(response.content, encoding='utf8'))
         self.assertEqual(response.status_code, status.HTTP_200_OK, 'expected HTTP 200')
         self.assertEqual(response_data, {"red": 26, "blue": 26}, 'expected correct match points')
+
+    def test_allow_delete_match(self):
+        request = factory.delete('/api/teams/{0}/matches/{1}/'.format(self.dev_team.id, 9))
+        force_authenticate(request, user=self.user)
+        view = MatchViewSet.as_view({'delete': 'retrieve'})
+        response = view(request, parent_lookup_team=str(self.dev_team.id), pk=9)
+        response.render()
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'expected HTTP 200')
+
+    def test_deny_delete_match(self):
+        request = factory.delete('/api/teams/{0}/matches/{1}/'.format(self.dev_team.id, 9))
+        force_authenticate(request, user=self.user2)
+        view = MatchViewSet.as_view({'delete': 'retrieve'})
+        response = view(request, parent_lookup_team=str(self.dev_team.id), pk=9)
+        response.render()
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, 'expected HTTP 403')

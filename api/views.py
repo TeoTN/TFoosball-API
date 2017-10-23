@@ -132,7 +132,7 @@ class TeamViewSet(NestedViewSetMixin, ModelViewSet):
         email = request.data.get('email', None)
         team = Team.objects.get(pk=pk)
         if not email:
-            return Response(displayable('You haven\'t provided an email'),status=status.HTTP_400_BAD_REQUEST)
+            return Response(displayable('You haven\'t provided an email'), status=status.HTTP_400_BAD_REQUEST)
         is_member = team.member_set.filter(player__email=email).exists()
         if is_member:
             return Response(
@@ -181,6 +181,7 @@ class MatchViewSet(ModelViewSet):
     serializer_class = MatchSerializer
     allowed_methods = [u'GET', u'POST', u'PUT', u'PATCH', u'DELETE', u'OPTIONS']
     pagination_class = StandardPagination
+    # permission_classes = [AccessOwnTeamOnly]
 
     def get_queryset(self):
         queryset = Match.objects.all()
