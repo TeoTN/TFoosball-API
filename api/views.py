@@ -166,6 +166,8 @@ class MemberViewSet(NestedViewSetMixin, ModelViewSet):
         is_accepted = self.request.query_params.get('is_accepted', True)
         pk = self.kwargs.get('pk', None)
         username = self.request.query_params.get('username', None)
+        if team and username:
+            return Member.objects.filter(team__id=team, username=username)
         if pk or username:
             return Member.objects.all()
         if team:
