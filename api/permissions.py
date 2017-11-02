@@ -42,3 +42,15 @@ class MemberPermissions(permissions.BasePermission):
         is_admin = request.user.member_set.filter(team__id=team, is_team_admin=True).count() > 0
         is_owner = request.user.member_set.filter(team__id=team, id=member_id).count() > 0
         return is_admin or is_owner or self.allow_accepting(request, view)
+
+
+class IsMatchOwner(permissions.BasePermission):
+    def has_permission(self, request, view):
+        accessed_team = view.kwargs.get('team', None)
+        if not accessed_team:
+            return True
+        return request.user.member_set.filter(team__id=accessed_team).exists()
+
+    def has_object_permission(self, request, view, obj):
+        owners = [u.pk for u in obj.users]
+        return request.user.member_set.filter(pk__in=owners).count() > 0

@@ -16,7 +16,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from api.emailing import send_invitation
 from tfoosball.models import Member, Match, Player, Team
 from .serializers import MatchSerializer, MemberSerializer, TeamSerializer, PlayerSerializer
-from .permissions import MemberPermissions, AccessOwnTeamOnly
+from .permissions import MemberPermissions, AccessOwnTeamOnly, IsMatchOwner
 
 
 def displayable(message):
@@ -183,7 +183,7 @@ class MatchViewSet(ModelViewSet):
     serializer_class = MatchSerializer
     allowed_methods = [u'GET', u'POST', u'PUT', u'PATCH', u'DELETE', u'OPTIONS']
     pagination_class = StandardPagination
-    # permission_classes = [AccessOwnTeamOnly]
+    permission_classes = [IsMatchOwner]
 
     def get_queryset(self):
         queryset = Match.objects.all()
