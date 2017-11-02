@@ -130,7 +130,10 @@ class Member(models.Model):
             is_placeholder = False
         except Player.DoesNotExist:
             member = Member.objects.create(**member_data)
-            PlayerPlaceholder.objects.get_or_create(member=member, email=email)
+            try:
+                PlayerPlaceholder.objects.get(member=member, email=email)
+            except PlayerPlaceholder.DoesNotExist:
+                PlayerPlaceholder.objects.create(member=member, email=email)
             is_placeholder = True
         return member, is_placeholder
 
