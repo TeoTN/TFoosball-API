@@ -51,7 +51,7 @@ class Member(models.Model):
     is_team_admin = models.BooleanField(default=False)
     is_accepted = models.BooleanField(default=False)
     hidden = models.BooleanField(default=False)
-    activation_code = models.CharField(max_length=40, default='', blank=True)
+    activation_code = models.CharField(max_length=384, default='', blank=True)
 
     def __str__(self):
         return '{0} ({1})'.format(self.username, self.team.name)
