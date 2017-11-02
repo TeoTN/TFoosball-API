@@ -176,6 +176,9 @@ class PlayerPlaceholder(models.Model):
         self.validate_unique()
         return super().save(*args, **kwargs)
 
+    def __str__(self):
+        return '{0} ({1})'.format(self.email, self.member.team.name)
+
 
 class MatchQuerySet(models.QuerySet):
     def by_team(self, team_id):
@@ -217,6 +220,9 @@ class Match(models.Model):
         (TIE, 'tie')
     )
     objects = MatchManager()
+
+    class Meta:
+        verbose_name_plural = "matches"
 
     red_att = models.ForeignKey(Member, related_name='red_att')
     red_def = models.ForeignKey(Member, related_name='red_def')
