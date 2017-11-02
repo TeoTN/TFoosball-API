@@ -25,6 +25,7 @@ class Team(models.Model):
 
 class Player(AbstractUser):
     teams = models.ManyToManyField(Team, through='Member')
+    whats_new_version = models.IntegerField(default=0)  # Latest seen what's new modal version
 
 
 class Member(models.Model):
