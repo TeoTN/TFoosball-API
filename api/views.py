@@ -1,3 +1,8 @@
+from smtplib import SMTPException
+from uuid import uuid4
+
+from django.core.exceptions import ValidationError
+from django.core.signing import BadSignature, SignatureExpired
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
 from django.db.models import F
@@ -7,9 +12,18 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_extensions.mixins import NestedViewSetMixin
+
+from api.emailing import send_invitation
 from tfoosball.models import Member, Match, Player, Team
 from .serializers import MatchSerializer, MemberSerializer, TeamSerializer, PlayerSerializer
-from .permissions import MemberPermissions
+from .permissions import MemberPermissions, AccessOwnTeamOnly, IsMatchOwner
+
+
+def displayable(message):
+    return {
+        'shouldDisplay': True,
+        'message': message,
+    }
 
 
 class StandardPagination(PageNumberPagination):
@@ -91,6 +105,56 @@ class TeamViewSet(NestedViewSetMixin, ModelViewSet):
             status=status.HTTP_409_CONFLICT
         )
 
+    @list_route(methods=['post'])
+    def accept(self, request):
+        activation_code = request.data.get('activation_code', None)
+        if not activation_code:
+            return Response(displayable('Unable to activate user'), status=status.HTTP_400_BAD_REQUEST)
+        print(activation_code)
+        email, team_name, token, token2 = activation_code.split(':')
+        if request.user.email != email:
+            return Response(displayable('Unable to activate user'), status=status.HTTP_400_BAD_REQUEST)
+        try:
+            member = Member.objects.get(activation_code=activation_code)
+            member.activate()
+        except (ValidationError, BadSignature):
+            return Response(displayable('Unable to activate user'), status=status.HTTP_400_BAD_REQUEST)
+        except SignatureExpired:
+            return Response(
+                displayable('Activation code has expired after 48 hours'),
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return Response(displayable('User activated'), status=status.HTTP_201_CREATED)
+
+    @detail_route(methods=['post'], permission_classes=[AccessOwnTeamOnly])
+    def invite(self, request, pk=None):
+        username = request.data.get('username', f'user-{str(uuid4())[:8]}')  # TODO Better default username
+        email = request.data.get('email', None)
+        team = Team.objects.get(pk=pk)
+        if not email:
+            return Response(displayable('You haven\'t provided an email'), status=status.HTTP_400_BAD_REQUEST)
+        is_member = team.member_set.filter(player__email=email).exists()
+        if is_member:
+            return Response(
+                displayable('User of email {0} is already a member of {1}'.format(email, team.name)),
+                status=status.HTTP_409_CONFLICT
+            )
+        member, placeholder = Member.create_member(username, email, pk, is_accepted=True, hidden=True)
+        activation_code = member.generate_activation_code()
+        try:
+            send_invitation(email, activation_code)
+        except SMTPException:
+            return Response(
+                'Unknown error while sending an invitation, please try again.',
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+            # TODO Revert member
+        else:
+            return Response(
+                displayable('Invitation was sent to {0}'.format(email)),
+                status=status.HTTP_201_CREATED
+            )
+
 
 class MemberViewSet(NestedViewSetMixin, ModelViewSet):
     serializer_class = MemberSerializer
@@ -101,7 +165,10 @@ class MemberViewSet(NestedViewSetMixin, ModelViewSet):
         team = self.kwargs.get('parent_lookup_team', None)
         is_accepted = self.request.query_params.get('is_accepted', True)
         pk = self.kwargs.get('pk', None)
-        if pk:
+        username = self.request.query_params.get('username', None)
+        if team and username:
+            return Member.objects.filter(team__id=team, username=username)
+        if pk or username:
             return Member.objects.all()
         if team:
             return Member.objects.filter(
@@ -116,6 +183,7 @@ class MatchViewSet(ModelViewSet):
     serializer_class = MatchSerializer
     allowed_methods = [u'GET', u'POST', u'PUT', u'PATCH', u'DELETE', u'OPTIONS']
     pagination_class = StandardPagination
+    permission_classes = [IsMatchOwner]
 
     def get_queryset(self):
         queryset = Match.objects.all()
@@ -158,7 +226,7 @@ class PlayerViewSet(ModelViewSet):
         queryset = Player.objects.all()
         prefix = self.request.query_params.get('email_prefix', None)
         if prefix:
-            queryset = queryset.filter(email__istartswith=prefix)
+            queryset = queryset.filter(email__istartswith=prefix)[:5]
         return queryset
 
     @detail_route(methods=['post'])

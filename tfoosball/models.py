@@ -1,4 +1,6 @@
+from datetime import timedelta
 from django.core.exceptions import ValidationError
+from django.core.signing import TimestampSigner
 from django.db import models
 from django.db.models import Q, Func
 from django.core.validators import RegexValidator
@@ -23,6 +25,7 @@ class Team(models.Model):
 
 class Player(AbstractUser):
     teams = models.ManyToManyField(Team, through='Member')
+    whats_new_version = models.IntegerField(default=0)  # Latest seen what's new modal version
 
 
 class Member(models.Model):
@@ -49,6 +52,7 @@ class Member(models.Model):
     is_team_admin = models.BooleanField(default=False)
     is_accepted = models.BooleanField(default=False)
     hidden = models.BooleanField(default=False)
+    activation_code = models.CharField(max_length=384, default='', blank=True)
 
     def __str__(self):
         return '{0} ({1})'.format(self.username, self.team.name)
@@ -118,20 +122,49 @@ class Member(models.Model):
             self.save()
 
     @staticmethod
-    def create_member(username, email, team_id, is_accepted=False):
+    def create_member(username, email, team_id, is_accepted=False, **kwargs):
         member_data = {'team_id': team_id, 'username': username, 'is_accepted': is_accepted}
+        member_data.update(kwargs)
         try:
             player = Player.objects.get(email=email)
+            member = Member.objects.create(**member_data, player=player)
+            is_placeholder = False
         except Player.DoesNotExist:
             member = Member.objects.create(**member_data)
-            PlayerPlaceholder.objects.create(member=member, email=email)
-        else:
-            member = Member.objects.create(**member_data, player=player)
-        return member
+            try:
+                PlayerPlaceholder.objects.get(member=member, email=email)
+            except PlayerPlaceholder.DoesNotExist:
+                PlayerPlaceholder.objects.create(member=member, email=email)
+            is_placeholder = True
+        return member, is_placeholder
+
+    def generate_activation_code(self):
+        email = self.player.email if self.player else self.placeholder.first().email
+        value = '{0}:{1}'.format(email, self.team.name)
+        signer = TimestampSigner()
+        self.activation_code = signer.sign(value)
+        self.save()
+        return self.activation_code
+
+    def activate(self):
+        """
+        Function will activate member with given code if it's valid and not expired.
+        :raises signing.BadSignature: Activation code was tampered
+        :raises signing.SignatureExpired: Activation code has expired after 48h
+        :raises ValidationError: The member was already activated
+        :return: None
+        """
+        if self.activation_code == '':
+            raise ValidationError('The member is already activated')
+        signer = TimestampSigner()
+        signer.unsign(self.activation_code, max_age=timedelta(days=2))
+        self.hidden = False
+        self.activation_code = ''
+        self.save()
 
 
 class PlayerPlaceholder(models.Model):
-    member = models.ForeignKey(Member, related_name='member')
+    member = models.ForeignKey(Member, related_name='placeholder')
     email = models.EmailField()
 
     def validate_unique(self, exclude=None):
@@ -143,6 +176,9 @@ class PlayerPlaceholder(models.Model):
     def save(self, *args, **kwargs):
         self.validate_unique()
         return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return '{0} ({1})'.format(self.email, self.member.team.name)
 
 
 class MatchQuerySet(models.QuerySet):
@@ -185,6 +221,9 @@ class Match(models.Model):
         (TIE, 'tie')
     )
     objects = MatchManager()
+
+    class Meta:
+        verbose_name_plural = "matches"
 
     red_att = models.ForeignKey(Member, related_name='red_att')
     red_def = models.ForeignKey(Member, related_name='red_def')
@@ -244,6 +283,11 @@ class Match(models.Model):
         if not self.date:
             self.date = timezone.now()
         super(Match, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f'Match {self.red_def.username} {self.red_att.username} - ' \
+               f'{self.blue_att.username} {self.blue_def.username} ' \
+               f'[{self.red_score} - {self.blue_score}]'
 
 
 class ExpHistory(models.Model):
