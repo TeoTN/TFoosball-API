@@ -1,10 +1,9 @@
-from django.forms import model_to_dict
 from django.test import TestCase
 from rest_framework.test import force_authenticate, APIRequestFactory
 from rest_framework import status
 from api.views import MatchViewSet
 from api.serializers import MatchSerializer
-from tfoosball.models import Player, Team, Match, Member
+from tfoosball.models import Player, Team, Match
 import json
 
 factory = APIRequestFactory()
