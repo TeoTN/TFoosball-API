@@ -155,26 +155,6 @@ class TeamViewSet(NestedViewSetMixin, ModelViewSet):
                 status=status.HTTP_201_CREATED
             )
 
-    @detail_route(methods=['post'], permission_classes=[IsAdmin])
-    def assign_admin(self, request, pk=None):
-        team = Team.objects.get(pk=pk)
-        username = request.data.get('username')
-        if not team or not username:
-            return Response(displayable('Incorrect request'), status=status.HTTP_400_BAD_REQUEST)
-        try:
-            member = team.member_set.get(username=username)
-        except Member.DoesNotExist:
-            return Response(
-                displayable(f'Unable to make {username} admin'),
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        member.is_team_admin = True
-        member.save()
-        return Response(
-            displayable(f'Successfully granted {username} admin privileges'),
-            status=status.HTTP_200_OK
-        )
-
 
 class MemberViewSet(NestedViewSetMixin, ModelViewSet):
     serializer_class = MemberSerializer

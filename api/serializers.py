@@ -26,10 +26,31 @@ class MemberSerializer(serializers.ModelSerializer):
     def_ratio = serializers.SerializerMethodField()
     win_ratio = serializers.SerializerMethodField()
     email = serializers.CharField(source='player.email', read_only=True)
-    first_name = serializers.CharField(source='player.first_name', read_only=True)
-    last_name = serializers.CharField(source='player.last_name', read_only=True)
+    first_name = serializers.CharField(source='player.first_name')
+    last_name = serializers.CharField(source='player.last_name')
     whats_new_version = serializers.IntegerField(source='player.whats_new_version', read_only=True)
     user_id = serializers.IntegerField(source='player.pk', read_only=True)
+
+    class Meta:
+        model = Member
+        fields = (
+            'id', 'username', 'email', 'first_name', 'last_name', 'exp', 'played', 'att_ratio', 'def_ratio',
+            'win_ratio', 'win_streak', 'lose_streak', 'curr_lose_streak', 'curr_win_streak', 'lowest_exp',
+            'highest_exp', 'exp_history', 'is_accepted', 'hidden', 'whats_new_version', 'user_id', 'is_team_admin',
+        )
+
+    def create(self, validated_data):
+        validated_data.pop('first_name')
+        validated_data.pop('last_name')
+        return super(MemberSerializer, self).create(validated_data)
+
+    def update(self, instance, validated_data):
+        print(validated_data)
+        player_data = validated_data.pop('player', None)
+        updated = super(MemberSerializer, self).update(instance, validated_data)
+        if player_data:
+            Player.objects.filter(id=updated.player.id).update(**player_data)
+        return updated
 
     def get_att_ratio(self, obj):
         return obj.att_ratio
@@ -46,14 +67,6 @@ class MemberSerializer(serializers.ModelSerializer):
             .annotate(daily_avg=F('exp'))\
             .annotate(amount=F('matches_played'))\
             .order_by('date')
-
-    class Meta:
-        model = Member
-        fields = (
-            'id', 'username', 'email', 'first_name', 'last_name', 'exp', 'played', 'att_ratio', 'def_ratio',
-            'win_ratio', 'win_streak', 'lose_streak', 'curr_lose_streak', 'curr_win_streak', 'lowest_exp',
-            'highest_exp', 'exp_history', 'is_accepted', 'hidden', 'whats_new_version', 'user_id', 'is_team_admin',
-        )
 
 
 class MatchSerializer(serializers.ModelSerializer):
