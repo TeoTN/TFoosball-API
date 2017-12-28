@@ -76,6 +76,13 @@ class MatchSerializer(serializers.ModelSerializer):
     blue_def = serializers.SlugRelatedField(slug_field='username', queryset=Member.objects.all())
     points = serializers.IntegerField(required=False)
 
+    class Meta:
+        model = Match
+        fields = (
+            'id', 'red_att', 'red_def', 'blue_att', 'blue_def', 'date',
+            'red_score', 'blue_score', 'points'
+        )
+
     def __init__(self, *args, **kwargs):
         # Ensure that we use only members within team context, if present
         ctx = kwargs.get('context', None)
@@ -90,9 +97,9 @@ class MatchSerializer(serializers.ModelSerializer):
                 field.queryset = field.queryset.filter(team_id=team_id)
         super(MatchSerializer, self).__init__(*args, **kwargs)
 
-    class Meta:
-        model = Match
-        fields = (
-            'id', 'red_att', 'red_def', 'blue_att', 'blue_def', 'date',
-            'red_score', 'blue_score', 'points'
-        )
+    def validate(self, data):
+        rs = data.get('red_score', None)
+        bs = data.get('blue_score', None)
+        if rs == 0 and bs == 0:
+            raise serializers.ValidationError('Cannot add match with score 0-0. Was it a typo?')
+        return data
