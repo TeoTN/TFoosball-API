@@ -16,7 +16,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from api.emailing import send_invitation
 from tfoosball.models import Member, Match, Player, Team
 from .serializers import MatchSerializer, MemberSerializer, TeamSerializer, PlayerSerializer
-from .permissions import MemberPermissions, AccessOwnTeamOnly, IsMatchOwner, IsAdmin
+from .permissions import MemberPermissions, AccessOwnTeamOnly, IsMatchOwner
 
 
 def displayable(message):
