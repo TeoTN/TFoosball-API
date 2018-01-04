@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from tfoosball.models import Player, Member, Match, Team
+from tfoosball.models import Player, Member, Match, Team, WhatsNew
 from django.db.models import Func, F
 
 
@@ -103,3 +103,9 @@ class MatchSerializer(serializers.ModelSerializer):
         if rs == 0 and bs == 0:
             raise serializers.ValidationError('Cannot add match with score 0-0. Was it a typo?')
         return data
+
+
+class WhatsNewSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('id', 'content')
+        model = WhatsNew

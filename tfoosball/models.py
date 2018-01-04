@@ -304,3 +304,10 @@ class ExpHistory(models.Model):
         if not self.date:
             self.date = timezone.now().date()
         super().save(*args, **kwargs)
+
+
+class WhatsNew(models.Model):
+    content = models.TextField(max_length=1536)
+
+    def __str__(self):
+        return f'What\'s new v{self.id}'

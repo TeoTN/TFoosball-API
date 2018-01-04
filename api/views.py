@@ -14,8 +14,8 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from api.emailing import send_invitation
-from tfoosball.models import Member, Match, Player, Team
-from .serializers import MatchSerializer, MemberSerializer, TeamSerializer, PlayerSerializer
+from tfoosball.models import Member, Match, Player, Team, WhatsNew
+from .serializers import MatchSerializer, MemberSerializer, TeamSerializer, PlayerSerializer, WhatsNewSerializer
 from .permissions import MemberPermissions, AccessOwnTeamOnly, IsMatchOwner
 
 
@@ -247,3 +247,9 @@ class PlayerViewSet(ModelViewSet):
             return Response(model_to_dict(member), status=status.HTTP_201_CREATED)
         err_msg = 'Player {0} already is a member of {1} team'.format(member.username, team.name)
         return Response({'detail': err_msg}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class WhatsNewViewSet(ModelViewSet):
+    serializer_class = WhatsNewSerializer
+    allowed_methods = [u'GET', u'OPTIONS']
+    queryset = WhatsNew.objects.all()
