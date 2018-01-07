@@ -23,6 +23,7 @@ DJANGO_APPS = [
 
 OTHER_APPS = [
     'corsheaders',
+    'django_filters',
     'rest_framework',
     'rest_framework.authtoken',
     'tfoosball',

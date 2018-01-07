@@ -204,7 +204,7 @@ class MatchViewSet(ModelViewSet):
 
     @list_route(methods=['get'])
     def points(self, request, *args, **kwargs):
-        data = {k+'_id': v for k, v in request.query_params.items()}
+        data = {k + '_id': v for k, v in request.query_params.items()}
         match = Match(**data, red_score=0, blue_score=10)
         try:
             result1 = abs(match.calculate_points()[0])

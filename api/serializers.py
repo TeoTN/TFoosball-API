@@ -17,7 +17,7 @@ class TeamSerializer(serializers.ModelSerializer):
 class PlayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Player
-        fields = ('id', 'email', 'first_name', 'last_name', 'whats_new_version')
+        fields = ('id', 'email', 'first_name', 'last_name', 'whats_new_version', 'default_team')
 
 
 class MemberSerializer(serializers.ModelSerializer):
@@ -26,9 +26,11 @@ class MemberSerializer(serializers.ModelSerializer):
     def_ratio = serializers.SerializerMethodField()
     win_ratio = serializers.SerializerMethodField()
     email = serializers.CharField(source='player.email', read_only=True)
+    # TODO Consider nested serializer
     first_name = serializers.CharField(source='player.first_name')
     last_name = serializers.CharField(source='player.last_name')
     whats_new_version = serializers.IntegerField(source='player.whats_new_version', read_only=True)
+    default_team = serializers.IntegerField(source='player.default_team.pk', default=-1)
     user_id = serializers.IntegerField(source='player.pk', read_only=True)
 
     class Meta:
@@ -36,12 +38,14 @@ class MemberSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'username', 'email', 'first_name', 'last_name', 'exp', 'played', 'att_ratio', 'def_ratio',
             'win_ratio', 'win_streak', 'lose_streak', 'curr_lose_streak', 'curr_win_streak', 'lowest_exp',
-            'highest_exp', 'exp_history', 'is_accepted', 'hidden', 'whats_new_version', 'user_id', 'is_team_admin',
+            'default_team', 'highest_exp', 'exp_history', 'is_accepted', 'hidden', 'whats_new_version', 'user_id',
+            'is_team_admin',
         )
 
     def create(self, validated_data):
         validated_data.pop('first_name')
         validated_data.pop('last_name')
+        validated_data.pop('default_team')
         return super(MemberSerializer, self).create(validated_data)
 
     def update(self, instance, validated_data):
@@ -63,9 +67,9 @@ class MemberSerializer(serializers.ModelSerializer):
 
     def get_exp_history(self, obj):
         return obj.exp_history.all() \
-            .values('date')\
-            .annotate(daily_avg=F('exp'))\
-            .annotate(amount=F('matches_played'))\
+            .values('date') \
+            .annotate(daily_avg=F('exp')) \
+            .annotate(amount=F('matches_played')) \
             .order_by('date')
 
 
