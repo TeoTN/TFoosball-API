@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from rest_framework.reverse import reverse
+
 from tfoosball.models import Player, Member, Match, Team, WhatsNew
 from django.db.models import Func, F
 
@@ -9,6 +11,21 @@ class Round(Func):
 
 
 class TeamSerializer(serializers.ModelSerializer):
+    links = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Team
+        fields = ('id', 'name', 'links')
+
+    def get_links(self, obj):
+        return {
+            'instance': reverse('api:team-detail', args=[obj.id], request=self.context['request']),
+            'members': reverse('api:team-member-list', args=[obj.id], request=self.context['request']),
+            'matches': reverse('api:team-matches-list', args=[obj.id], request=self.context['request'])
+        }
+
+
+class TeamDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
         fields = ('id', 'name')
@@ -21,7 +38,6 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 
 class MemberSerializer(serializers.ModelSerializer):
-    exp_history = serializers.SerializerMethodField()
     att_ratio = serializers.SerializerMethodField()
     def_ratio = serializers.SerializerMethodField()
     win_ratio = serializers.SerializerMethodField()
@@ -38,7 +54,7 @@ class MemberSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'username', 'email', 'first_name', 'last_name', 'exp', 'played', 'att_ratio', 'def_ratio',
             'win_ratio', 'win_streak', 'lose_streak', 'curr_lose_streak', 'curr_win_streak', 'lowest_exp',
-            'default_team', 'highest_exp', 'exp_history', 'is_accepted', 'hidden', 'whats_new_version', 'user_id',
+            'default_team', 'highest_exp', 'is_accepted', 'hidden', 'whats_new_version', 'user_id',
             'is_team_admin',
         )
 
@@ -64,6 +80,14 @@ class MemberSerializer(serializers.ModelSerializer):
 
     def get_win_ratio(self, obj):
         return obj.win_ratio
+
+
+class MemberDetailSerializer(MemberSerializer):
+    exp_history = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = MemberSerializer.Meta.fields + ('exp_history',)
+        model = Member
 
     def get_exp_history(self, obj):
         return obj.exp_history.all() \

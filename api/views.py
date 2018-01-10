@@ -11,11 +11,19 @@ from rest_framework.decorators import list_route, detail_route
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework_extensions.mixins import NestedViewSetMixin
+from rest_framework_extensions.mixins import NestedViewSetMixin, DetailSerializerMixin
 
 from api.emailing import send_invitation
 from tfoosball.models import Member, Match, Player, Team, WhatsNew
-from .serializers import MatchSerializer, MemberSerializer, TeamSerializer, PlayerSerializer, WhatsNewSerializer
+from .serializers import (
+    MatchSerializer,
+    MemberSerializer,
+    TeamSerializer,
+    PlayerSerializer,
+    WhatsNewSerializer,
+    TeamDetailSerializer,
+    MemberDetailSerializer
+)
 from .permissions import MemberPermissions, AccessOwnTeamOnly, IsMatchOwner
 
 
@@ -32,9 +40,11 @@ class StandardPagination(PageNumberPagination):
     max_page_size = 50
 
 
-class TeamViewSet(NestedViewSetMixin, ModelViewSet):
+class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
     serializer_class = TeamSerializer
+    serializer_detail_class = TeamDetailSerializer
     allowed_methods = [u'GET', u'POST', u'OPTIONS']
+    filter_fields = ('name',)
 
     def get_queryset(self):
         return Team.objects.all()
@@ -157,9 +167,14 @@ class TeamViewSet(NestedViewSetMixin, ModelViewSet):
 
 
 class MemberViewSet(NestedViewSetMixin, ModelViewSet):
-    serializer_class = MemberSerializer
-    filter_fields = ('is_accepted', 'username')
+    filter_fields = ('is_accepted', 'username', 'hidden')
     permission_classes = (MemberPermissions,)
+
+    def get_serializer_class(self, *args, **kwargs):
+        username = self.request.query_params.get('username', None)
+        if self.action == 'retrieve' or username:
+            return MemberDetailSerializer
+        return MemberSerializer
 
     def get_queryset(self):
         team = self.kwargs.get('parent_lookup_team', None)
