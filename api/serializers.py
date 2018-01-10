@@ -134,6 +134,13 @@ class MatchSerializer(serializers.ModelSerializer):
 
 
 class WhatsNewSerializer(serializers.ModelSerializer):
+    links = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
-        fields = ('id', 'content')
+        fields = ('id', 'content', 'links')
         model = WhatsNew
+
+    def get_links(self, obj):
+        return {
+            'instance': reverse('api:whatsnew-detail', args=[obj.id], request=self.context['request']),
+        }

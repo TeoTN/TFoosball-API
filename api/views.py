@@ -47,7 +47,11 @@ class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
     filter_fields = ('name',)
 
     def get_queryset(self):
-        return Team.objects.all()
+        queryset = Team.objects.all()
+        prefix = self.request.query_params.get('name_prefix', None)
+        if prefix:
+            queryset = queryset.filter(name__istartswith=prefix)[:5]
+        return queryset
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
