@@ -49,4 +49,7 @@ class TeamEndpointTestCase(TestCase):
         self.assertEqual(member.count(), 1, 'Expected member to be created')
         expected_data = {'id': team[0].id, 'name': team[0].name, 'member_id': member[0].id}
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, 'expected HTTP 201 - Created')
-        self.assertDictEqual(response.data, expected_data, 'Expected appropriate data scheme to be in response')
+        self.assertTrue(
+            expected_data.items() <= response.data.items(),
+            'Expected appropriate data scheme to be in response'
+        )
