@@ -113,7 +113,10 @@ class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
             is_accepted=False,
         )
         if created:
-            return Response('Please wait for somebody to accept your join request.', status=status.HTTP_201_CREATED)
+            return Response(
+                'Please wait until a club member confirms your request.',
+                status=status.HTTP_201_CREATED
+            )
         return Response(
             data='You have already requested membership in team {0}'.format(team.name),
             status=status.HTTP_409_CONFLICT
