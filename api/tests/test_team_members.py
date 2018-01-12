@@ -53,6 +53,27 @@ class TeamMembersEndpointTestCase(TestCase):
         response.render()
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, 'expected HTTP 204 - No content')
 
+    def test_discard_yourself(self):
+        team = Team.objects.create(name='Randoms')
+        member = Member.objects.create(player=self.dummy_user, team=team, username='Ian')
+        request = factory.delete('/api/teams/{0}/members/{1}/'.format(team.id, member.id))
+        force_authenticate(request, user=member.player)
+        view = MemberViewSet.as_view({'delete': 'destroy'})
+        response = view(request, parent_lookup_team=str(team.id), pk=member.id)
+        response.render()
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, 'expected HTTP 204 - No content')
+
+    def test_discard_last(self):
+        team = Team.objects.create(name='Randoms')
+        member = Member.objects.create(player=self.dummy_user, team=team, username='Ian')
+        request = factory.delete('/api/teams/{0}/members/{1}/'.format(team.id, member.id))
+        force_authenticate(request, user=member.player)
+        view = MemberViewSet.as_view({'delete': 'destroy'})
+        response = view(request, parent_lookup_team=str(team.id), pk=member.id)
+        response.render()
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, 'expected HTTP 204 - No content')
+        self.assertEqual(Team.objects.filter(name='Randoms').count(), 0)
+
     def test_discard_not_admin(self):
         request = factory.delete('/api/teams/{0}/members/10/'.format(self.dev_team.domain))
         force_authenticate(request, user=self.dummy_user)

@@ -200,6 +200,15 @@ class MemberViewSet(NestedViewSetMixin, ModelViewSet):
             )
         return Member.objects.all()
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        team = instance.team
+        is_last = team.member_set.count() == 1
+        self.perform_destroy(instance)
+        if is_last:
+            team.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class MatchViewSet(ModelViewSet):
     serializer_class = MatchSerializer

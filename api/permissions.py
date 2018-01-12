@@ -1,5 +1,7 @@
 from rest_framework import permissions
 
+from tfoosball.models import Member
+
 
 class AccessOwnTeamOnly(permissions.BasePermission):
     message = 'You cannot access team you don\'t belong to.'
@@ -25,7 +27,8 @@ class MemberPermissions(permissions.BasePermission):
             print('wrong method')
             return False
         member_id = view.kwargs.get('pk', None)
-        is_self = request.user.id == member_id
+        member = Member.objects.filter(pk=member_id).first()
+        is_self = request.user.id == member.player.id if member else False
         is_accepting = list(request.data.keys()) in [['is_accepted'], []]
         if is_self or not is_accepting:
             print('self or not is_accepting', is_self, is_accepting, list(request.data.keys()))
