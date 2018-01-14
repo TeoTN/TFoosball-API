@@ -1,6 +1,6 @@
 from smtplib import SMTPException
 from uuid import uuid4
-
+from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core.signing import BadSignature, SignatureExpired
 from django.shortcuts import get_object_or_404
@@ -10,7 +10,8 @@ from rest_framework import status
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet, ViewSet
 from rest_framework_extensions.mixins import NestedViewSetMixin, DetailSerializerMixin
 
 from api.emailing import send_invitation
@@ -156,7 +157,12 @@ class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
                 displayable('User of email {0} is already a member of {1}'.format(email, team.name)),
                 status=status.HTTP_409_CONFLICT
             )
-        member, placeholder = Member.create_member(username, email, pk, is_accepted=True, hidden=True)
+        member, placeholder = Member.create_member(
+            username, email, pk,
+            is_accepted=True,
+            hidden=True,
+            invitation_date=timezone.now()
+        )
         activation_code = member.generate_activation_code()
         try:
             send_invitation(email, activation_code)
@@ -284,3 +290,18 @@ class WhatsNewViewSet(ModelViewSet):
     serializer_class = WhatsNewSerializer
     allowed_methods = [u'GET', u'OPTIONS']
     queryset = WhatsNew.objects.all()
+
+
+class EventsViewSet(NestedViewSetMixin, ViewSet):
+    def get_club_events(self, team_id):
+        date_from = timezone.now() - timezone.timedelta(days=1)
+        matches = Match.objects.by_team(team_id=team_id).filter(date__gte=date_from)
+        members = Member.objects.filter(team__id=team_id)
+        events = matches.get_events() + members.get_events()
+        return sorted(events, key=lambda ev: ev['date'], reverse=True)
+
+    def list(self, request, *args, **kwargs):
+        team_id = kwargs.get('parent_lookup_team', None)
+        if not team_id:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(self.get_club_events(team_id))

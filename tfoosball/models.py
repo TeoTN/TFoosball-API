@@ -29,9 +29,27 @@ class Player(AbstractUser):
     default_team = models.ForeignKey(Team, blank=True, null=True, related_name='default_team')
 
 
+class MemberQuerySet(models.QuerySet):
+    def get_events(self):
+        events = []
+        for member in self.all():
+            events.append(member.get_invitation_event())
+            events.append(member.get_joined_event())
+        return list(filter(None, events))
+
+
+class MemberManager(models.Manager):
+    def get_queryset(self):
+        return MemberQuerySet(self.model, using=self._db)
+
+    def get_events(self):
+        return self.get_queryset().get_events()
+
+
 class Member(models.Model):
     WINNER = 1
     LOSER = 0
+    objects = MemberManager()
 
     class Meta:
         unique_together = (('team', 'username'),)
@@ -54,6 +72,8 @@ class Member(models.Model):
     is_accepted = models.BooleanField(default=False)
     hidden = models.BooleanField(default=False)
     activation_code = models.CharField(max_length=384, default='', blank=True)
+    invitation_date = models.DateTimeField(blank=True, null=True)
+    joined_date = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return '{0} ({1})'.format(self.username, self.team.name)
@@ -161,7 +181,22 @@ class Member(models.Model):
         signer.unsign(self.activation_code, max_age=timedelta(days=2))
         self.hidden = False
         self.activation_code = ''
+        self.joined_date = timezone.now()
         self.save()
+
+    def get_invitation_event(self):
+        return {
+            'date': self.invitation_date,
+            'event': f'Member {self.username} has been invited',
+            'type': 'invitation'
+        } if self.invitation_date else None
+
+    def get_joined_event(self):
+        return {
+            'date': self.joined_date,
+            'event': f'Member {self.username} has joined',
+            'type': 'joined'
+        } if self.joined_date else None
 
 
 class PlayerPlaceholder(models.Model):
@@ -199,6 +234,9 @@ class MatchQuerySet(models.QuerySet):
             Q(blue_def__username=username)
         )
 
+    def get_events(self):
+        return [match.get_event() for match in self.all()]
+
 
 class MatchManager(models.Manager):
     def get_queryset(self):
@@ -209,6 +247,9 @@ class MatchManager(models.Manager):
 
     def by_username(self, username):
         return self.get_queryset().by_username(username)
+
+    def get_events(self):
+        return self.get_queryset().get_events()
 
 
 class Match(models.Model):
@@ -289,6 +330,14 @@ class Match(models.Model):
         return f'Match {self.red_def.username} {self.red_att.username} - ' \
                f'{self.blue_att.username} {self.blue_def.username} ' \
                f'[{self.red_score} - {self.blue_score}]'
+
+    def get_event(self):
+        return {
+            'date': self.date,
+            'event': f'Match was played between {self.red_def.username} {self.red_att.username} and '
+                     f'{self.blue_att.username} {self.blue_def.username}. Score: {self.red_score} - {self.blue_score}',
+            'type': 'match'
+        }
 
 
 class ExpHistory(models.Model):
