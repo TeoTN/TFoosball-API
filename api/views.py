@@ -295,11 +295,13 @@ class WhatsNewViewSet(ModelViewSet):
 
 
 class EventsViewSet(NestedViewSetMixin, ViewSet):
+    permission_classes = (IsAuthenticated,)
+
     def get_club_events(self, team_id):
-        date_from = timezone.now() - timezone.timedelta(days=1)
-        matches = Match.objects.by_team(team_id=team_id).filter(date__gte=date_from)
-        members = Member.objects.filter(team__id=team_id)
-        events = matches.get_events() + members.get_events()
+        date_from = timezone.now() - timezone.timedelta(days=2)
+        matches = Match.objects.by_team(team_id=team_id).filter(date__gte=date_from)[:10]
+        members = Member.objects.filter(team__id=team_id)[:10]
+        events = members.get_events() + matches.get_events()
         return sorted(events, key=lambda ev: ev['date'], reverse=True)
 
     def list(self, request, *args, **kwargs):

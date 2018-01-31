@@ -187,16 +187,22 @@ class Member(models.Model):
     def get_invitation_event(self):
         return {
             'date': self.invitation_date,
-            'event': f'Member {self.username} has been invited',
+            'event': f'Invitation to ***{self.get_email()}*** has been sent',
             'type': 'invitation'
         } if self.invitation_date else None
 
     def get_joined_event(self):
         return {
             'date': self.joined_date,
-            'event': f'Member {self.username} has joined',
+            'event': f'Member ***[{self.username}]({self.get_profile_link()})*** has joined',
             'type': 'joined'
         } if self.joined_date else None
+
+    def get_email(self):
+        return self.player.email if self.player else self.placeholder.all().first().email
+
+    def get_profile_link(self):
+        return f'/profile/{self.username}/stats'
 
 
 class PlayerPlaceholder(models.Model):
@@ -332,10 +338,19 @@ class Match(models.Model):
                f'[{self.red_score} - {self.blue_score}]'
 
     def get_event(self):
+        rdname = self.red_def.username
+        rdlink = self.red_def.get_profile_link()
+        raname = self.red_att.username
+        ralink = self.red_att.get_profile_link()
+        bdname = self.blue_def.username
+        bdlink = self.blue_def.get_profile_link()
+        baname = self.blue_att.username
+        balink = self.blue_att.get_profile_link()
         return {
             'date': self.date,
-            'event': f'Match was played between {self.red_def.username} {self.red_att.username} and '
-                     f'{self.blue_att.username} {self.blue_def.username}. Score: {self.red_score} - {self.blue_score}',
+            'event': f'Match was played: ***[{rdname}]({rdlink})***, ***[{raname}]({ralink})*** vs. '
+                     f'***[{baname}]({balink})***, ***[{bdname}]({bdlink})***.' + '\n\n'
+                     f'###### Score: **{self.red_score}**&nbsp;-&nbsp;**{self.blue_score}**',
             'type': 'match'
         }
 
