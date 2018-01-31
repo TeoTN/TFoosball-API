@@ -10,9 +10,9 @@ from rest_framework import status
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ViewSet
 from rest_framework_extensions.mixins import NestedViewSetMixin, DetailSerializerMixin
+from rest_framework.permissions import IsAuthenticated
 
 from api.emailing import send_invitation
 from tfoosball.models import Member, Match, Player, Team, WhatsNew
@@ -46,6 +46,7 @@ class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
     serializer_detail_class = TeamDetailSerializer
     allowed_methods = [u'GET', u'POST', u'OPTIONS']
     filter_fields = ('name',)
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = Team.objects.all()
@@ -87,6 +88,7 @@ class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
         data = {
             'teams': teams_data,
             'pending': teams_pending,
+            'default_team': request.user.default_team.pk if request.user.default_team else None
         }
         return Response(data, status.HTTP_200_OK)
 
@@ -128,7 +130,6 @@ class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
         activation_code = request.data.get('activation_code', None)
         if not activation_code:
             return Response(displayable('Unable to activate user'), status=status.HTTP_400_BAD_REQUEST)
-        print(activation_code)
         email, team_name, token, token2 = activation_code.split(':')
         if request.user.email != email:
             return Response(displayable('Unable to activate user'), status=status.HTTP_400_BAD_REQUEST)
@@ -181,7 +182,7 @@ class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
 
 class MemberViewSet(NestedViewSetMixin, ModelViewSet):
     filter_fields = ('is_accepted', 'username', 'hidden')
-    permission_classes = (MemberPermissions,)
+    permission_classes = (MemberPermissions, IsAuthenticated)
 
     def get_serializer_class(self, *args, **kwargs):
         username = self.request.query_params.get('username', None)
@@ -220,7 +221,7 @@ class MatchViewSet(ModelViewSet):
     serializer_class = MatchSerializer
     allowed_methods = [u'GET', u'POST', u'PUT', u'PATCH', u'DELETE', u'OPTIONS']
     pagination_class = StandardPagination
-    permission_classes = [IsMatchOwner]
+    permission_classes = (IsMatchOwner, IsAuthenticated)
 
     def get_queryset(self):
         queryset = Match.objects.all()
@@ -258,6 +259,7 @@ class MatchViewSet(ModelViewSet):
 class PlayerViewSet(ModelViewSet):
     serializer_class = PlayerSerializer
     allowed_methods = [u'GET', u'OPTIONS']
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = Player.objects.all()
