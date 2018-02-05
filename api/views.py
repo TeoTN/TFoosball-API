@@ -11,6 +11,7 @@ from rest_framework.decorators import list_route, detail_route
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from api.emailing import send_invitation
@@ -35,6 +36,7 @@ class StandardPagination(PageNumberPagination):
 class TeamViewSet(NestedViewSetMixin, ModelViewSet):
     serializer_class = TeamSerializer
     allowed_methods = [u'GET', u'POST', u'OPTIONS']
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         return Team.objects.all()
@@ -110,7 +112,6 @@ class TeamViewSet(NestedViewSetMixin, ModelViewSet):
         activation_code = request.data.get('activation_code', None)
         if not activation_code:
             return Response(displayable('Unable to activate user'), status=status.HTTP_400_BAD_REQUEST)
-        print(activation_code)
         email, team_name, token, token2 = activation_code.split(':')
         if request.user.email != email:
             return Response(displayable('Unable to activate user'), status=status.HTTP_400_BAD_REQUEST)
@@ -159,7 +160,7 @@ class TeamViewSet(NestedViewSetMixin, ModelViewSet):
 class MemberViewSet(NestedViewSetMixin, ModelViewSet):
     serializer_class = MemberSerializer
     filter_fields = ('is_accepted', 'username')
-    permission_classes = (MemberPermissions,)
+    permission_classes = (MemberPermissions, IsAuthenticated)
 
     def get_queryset(self):
         team = self.kwargs.get('parent_lookup_team', None)
@@ -221,6 +222,7 @@ class MatchViewSet(ModelViewSet):
 class PlayerViewSet(ModelViewSet):
     serializer_class = PlayerSerializer
     allowed_methods = [u'GET', u'OPTIONS']
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = Player.objects.all()

@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.sessions.models import Session
-
+from rest_framework.authtoken.models import Token
 
 class Command(BaseCommand):
     help = 'WARNING! This command closes all opened sessions. Users will be logged out.'
@@ -17,6 +17,7 @@ class Command(BaseCommand):
         force = options.get('force', False)
         if force:
             Session.objects.all().delete()
+            Token.objects.all().delete()
         else:
             print('''
             WARNING! This command will shut down all opened users sessions. They will be logged out.
