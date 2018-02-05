@@ -72,7 +72,7 @@ class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
             response_data.update({'member_id': member.id})
         return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
 
-    @list_route(methods=['get'])
+    @list_route(methods=['get'], permission_classes=[IsAuthenticated])
     def joined(self, request):
         """
         :param request:
@@ -92,7 +92,7 @@ class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
         }
         return Response(data, status.HTTP_200_OK)
 
-    @list_route(methods=['post'])
+    @list_route(methods=['post'], permission_classes=[IsAuthenticated])
     def join(self, request):
         """
         This endpoint allows request user to join given team
@@ -125,7 +125,7 @@ class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
             status=status.HTTP_409_CONFLICT
         )
 
-    @list_route(methods=['post'])
+    @list_route(methods=['post'], permission_classes=[IsAuthenticated])
     def accept(self, request):
         activation_code = request.data.get('activation_code', None)
         if not activation_code:
@@ -145,7 +145,7 @@ class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
             )
         return Response(displayable('User activated'), status=status.HTTP_201_CREATED)
 
-    @detail_route(methods=['post'], permission_classes=[AccessOwnTeamOnly])
+    @detail_route(methods=['post'], permission_classes=[AccessOwnTeamOnly, IsAuthenticated])
     def invite(self, request, pk=None):
         username = request.data.get('username', f'user-{str(uuid4())[:8]}')  # TODO Better default username
         email = request.data.get('email', None)
