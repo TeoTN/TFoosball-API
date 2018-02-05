@@ -5,13 +5,15 @@ class AccessOwnTeamOnly(permissions.BasePermission):
     message = 'You cannot access team you don\'t belong to.'
 
     def has_permission(self, request, view):
-        accessed_team = view.kwargs.get('team', None)
+        print(view.kwargs)
+        accessed_team = view.kwargs.get('pk', None)
         if not accessed_team:
             return True
         return request.user.member_set.filter(team__id=accessed_team).exists()
 
     def has_object_permission(self, request, view, obj):
-        accessed_team = view.kwargs.get('team', None)
+        print(view.kwargs)
+        accessed_team = view.kwargs.get('pk', None)
         if not accessed_team or request.user.is_staff:
             return True
         return request.user.member_set.filter(team__id=accessed_team).exists()

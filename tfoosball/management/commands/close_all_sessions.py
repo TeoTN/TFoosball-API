@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.sessions.models import Session
 from rest_framework.authtoken.models import Token
 
+
 class Command(BaseCommand):
     help = 'WARNING! This command closes all opened sessions. Users will be logged out.'
 
