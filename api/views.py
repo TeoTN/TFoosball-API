@@ -156,6 +156,8 @@ class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
         return Response(displayable('User activated'), status=status.HTTP_201_CREATED)
 
     def generate_username(self, team, email):
+        if not email or not team:
+            return ''
         unique = False
         username = ''
         while not unique:
