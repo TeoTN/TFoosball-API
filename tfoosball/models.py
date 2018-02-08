@@ -49,6 +49,7 @@ class MemberManager(models.Manager):
 class Member(models.Model):
     WINNER = 1
     LOSER = 0
+    username_len = 32
     objects = MemberManager()
 
     class Meta:
@@ -56,7 +57,7 @@ class Member(models.Model):
 
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     player = models.ForeignKey(Player, on_delete=models.CASCADE, blank=True, null=True)
-    username = models.CharField(max_length=14, blank=False, null=False)
+    username = models.CharField(max_length=username_len, blank=False, null=False)
     exp = models.IntegerField(blank=False, null=False, default=1000)
     offence_won = models.IntegerField(default=0)
     defence_won = models.IntegerField(default=0)

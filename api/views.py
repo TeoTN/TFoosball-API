@@ -110,7 +110,7 @@ class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
         except Team.DoesNotExist:
             return Response('Team does not exist', status=status.HTTP_404_NOT_FOUND)
         try:
-            Member.objects.get(team=team, username=username[:14])
+            Member.objects.get(team=team, username=username[:Member.username_len])
             return Response('Username already taken', status=status.HTTP_409_CONFLICT)
         except Member.DoesNotExist:
             pass
@@ -122,7 +122,7 @@ class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
         member, created = Member.objects.get_or_create(
             team=team,
             player=request.user,
-            username=username[:14],
+            username=username[:Member.username_len],
             is_accepted=False,
         )
         if created:
@@ -290,7 +290,11 @@ class PlayerViewSet(ModelViewSet):
         try:
             member, created = Member.objects.get(team=team, player=player), False
         except Member.DoesNotExist:
-            member, created = Member.objects.create(team=team, player=player, username=username[:14]), True
+            member, created = Member.objects.create(
+                team=team,
+                player=player,
+                username=username[:Member.username_len]
+            ), True
         if created:
             return Response(model_to_dict(member), status=status.HTTP_201_CREATED)
         err_msg = 'Player {0} already is a member of {1} team'.format(member.username, team.name)
