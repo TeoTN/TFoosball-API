@@ -65,7 +65,6 @@ class MemberSerializer(serializers.ModelSerializer):
         return super(MemberSerializer, self).create(validated_data)
 
     def update(self, instance, validated_data):
-        print(validated_data)
         player_data = validated_data.pop('player', None)
         updated = super(MemberSerializer, self).update(instance, validated_data)
         if player_data:

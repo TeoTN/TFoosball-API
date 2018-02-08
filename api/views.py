@@ -1,5 +1,5 @@
+from random import randint
 from smtplib import SMTPException
-from uuid import uuid4
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core.signing import BadSignature, SignatureExpired
@@ -155,11 +155,20 @@ class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
             )
         return Response(displayable('User activated'), status=status.HTTP_201_CREATED)
 
+    def generate_username(self, team, email):
+        unique = False
+        username = ''
+        while not unique:
+            core = email.rsplit('@')[0]
+            username = f'{core}-{randint(1000, 9999)}'[:32]
+            unique = not Member.objects.filter(team=team, username=username).exists()
+        return username
+
     @detail_route(methods=['post'], permission_classes=[AccessOwnTeamOnly, IsAuthenticated])
     def invite(self, request, pk=None):
-        username = request.data.get('username', f'user-{str(uuid4())[:8]}')  # TODO Better default username
-        email = request.data.get('email', None)
         team = Team.objects.get(pk=pk)
+        email = request.data.get('email', None)
+        username = request.data.get('username', self.generate_username(team, email))
         if not email:
             return Response(displayable('You haven\'t provided an email'), status=status.HTTP_400_BAD_REQUEST)
         is_member = team.member_set.filter(player__email=email).exists()
