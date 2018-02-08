@@ -109,6 +109,16 @@ class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
             team = Team.objects.get(name=teamname)
         except Team.DoesNotExist:
             return Response('Team does not exist', status=status.HTTP_404_NOT_FOUND)
+        try:
+            Member.objects.get(team=team, username=username[:14])
+            return Response('Username already taken', status=status.HTTP_409_CONFLICT)
+        except Member.DoesNotExist:
+            pass
+        try:
+            Member.objects.get(team=team, player=request.user)
+            return Response('Already joined that team', status=status.HTTP_409_CONFLICT)
+        except Member.DoesNotExist:
+            pass
         member, created = Member.objects.get_or_create(
             team=team,
             player=request.user,
@@ -292,6 +302,7 @@ class WhatsNewViewSet(ModelViewSet):
     serializer_class = WhatsNewSerializer
     allowed_methods = [u'GET', u'OPTIONS']
     queryset = WhatsNew.objects.all()
+    permission_classes = []
 
 
 class EventsViewSet(NestedViewSetMixin, ViewSet):
