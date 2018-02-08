@@ -211,7 +211,6 @@ class MemberViewSet(NestedViewSetMixin, ModelViewSet):
             return Member.objects.all()
         if team:
             return Member.objects.filter(
-                hidden=False,
                 is_accepted=is_accepted,
                 team__pk=team
             )
