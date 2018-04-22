@@ -41,10 +41,10 @@ class MemberSerializer(serializers.ModelSerializer):
     att_ratio = serializers.SerializerMethodField()
     def_ratio = serializers.SerializerMethodField()
     win_ratio = serializers.SerializerMethodField()
-    email = serializers.CharField(source='player.email', read_only=True)
     # TODO Consider nested serializer
-    first_name = serializers.CharField(source='player.first_name')
-    last_name = serializers.CharField(source='player.last_name')
+    email = serializers.CharField(source='player.email', read_only=True)
+    first_name = serializers.CharField(source='player.first_name', default='')
+    last_name = serializers.CharField(source='player.last_name', default='')
     whats_new_version = serializers.IntegerField(source='player.whats_new_version', read_only=True)
     default_team = serializers.IntegerField(source='player.default_team.pk', default=-1)
     user_id = serializers.IntegerField(source='player.pk', read_only=True)

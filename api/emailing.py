@@ -6,8 +6,11 @@ def send_invitation(email, activation_code):
         subject='[Invitation] Rethink the way you play table football!',
         message='''
             Hi!
+
             You have been invited to TFoosball. Join us here: https://tfoosball.herokuapp.com/accept/{0}/
-            The service is not active yet, thank you for your patience.
+
+            Best regards,
+            TFoosball Team
         '''.format(activation_code),
         # html_message='Here is the message.',
         from_email='tfoosball@piotrstaniow.pl',
