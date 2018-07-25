@@ -26,7 +26,7 @@ class Team(models.Model):
 class Player(AbstractUser):
     teams = models.ManyToManyField(Team, through='Member')
     whats_new_version = models.IntegerField(default=0)  # Latest seen what's new modal version
-    default_team = models.ForeignKey(Team, blank=True, null=True, related_name='default_team')
+    default_team = models.ForeignKey(Team, blank=True, null=True, related_name='default_team', on_delete=models.CASCADE)
 
 
 class MemberQuerySet(models.QuerySet):
@@ -207,7 +207,7 @@ class Member(models.Model):
 
 
 class PlayerPlaceholder(models.Model):
-    member = models.ForeignKey(Member, related_name='placeholder')
+    member = models.ForeignKey(Member, related_name='placeholder', on_delete=models.CASCADE)
     email = models.EmailField()
 
     def validate_unique(self, exclude=None):
@@ -274,10 +274,10 @@ class Match(models.Model):
     class Meta:
         verbose_name_plural = "matches"
 
-    red_att = models.ForeignKey(Member, related_name='red_att')
-    red_def = models.ForeignKey(Member, related_name='red_def')
-    blue_att = models.ForeignKey(Member, related_name='blue_att')
-    blue_def = models.ForeignKey(Member, related_name='blue_def')
+    red_att = models.ForeignKey(Member, related_name='red_att', on_delete=models.CASCADE)
+    red_def = models.ForeignKey(Member, related_name='red_def', on_delete=models.CASCADE)
+    blue_att = models.ForeignKey(Member, related_name='blue_att', on_delete=models.CASCADE)
+    blue_def = models.ForeignKey(Member, related_name='blue_def', on_delete=models.CASCADE)
     date = models.DateTimeField(blank=True)
     red_score = models.IntegerField()
     blue_score = models.IntegerField()
