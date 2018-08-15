@@ -1,7 +1,6 @@
-from django.conf.urls import url, include
-from rest_framework_extensions.routers import (
-    ExtendedDefaultRouter as DefaultRouter
-)
+from django.urls import path, include
+
+from api.routers import ExtendedDefaultRouter
 from .views import (
     MemberViewSet,
     MatchViewSet,
@@ -11,7 +10,8 @@ from .views import (
     EventsViewSet,
 )
 
-router = DefaultRouter()
+app_name = 'api'
+router = ExtendedDefaultRouter()
 player_routes = router.register(r'players', PlayerViewSet, base_name='player')
 team_routes = router.register(r'teams', TeamViewSet, base_name='team')
 team_routes.register(r'members', MemberViewSet, base_name='team-member', parents_query_lookups=['team'])
@@ -20,5 +20,5 @@ team_routes.register(r'events', EventsViewSet, base_name='team-events', parents_
 whatsnew = router.register(r'whatsnew', WhatsNewViewSet, base_name='whatsnew')
 
 urlpatterns = [
-    url(r'^', include(router.urls, namespace='api')),
+    path('', include(router.urls)),
 ]

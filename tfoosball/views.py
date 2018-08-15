@@ -1,15 +1,5 @@
 from django.views.generic import TemplateView
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from rest_auth.registration.views import SocialLoginView
 import os
-
-
-class GoogleLoginView(SocialLoginView):
-    adapter_class = GoogleOAuth2Adapter
-
-    def get_response(self):
-        response = super(GoogleLoginView, self).get_response()
-        return response
 
 
 class CallbackView(TemplateView):

@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 
 # PATHS
 # ------------------------------------------------------------------------------
@@ -8,6 +9,15 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, '..', 'static')]
 TEMPLATES_DIR = os.path.join(BASE_DIR, '..', 'templates')
 ROOT_URLCONF = 'tfoosball.urls'
+ENV_FILE = os.path.join(BASE_DIR, '.env')
+
+load_dotenv(ENV_FILE)
+
+# ENVIRONMENT
+# ------------------------------------------------------------------------------
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
 
 # APP CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -28,11 +38,9 @@ OTHER_APPS = [
     'rest_framework.authtoken',
     'tfoosball',
     'api',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
-    'rest_auth',
+    'oauth2_provider',
+    'social_django',
+    'rest_framework_social_oauth2',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + OTHER_APPS
@@ -72,6 +80,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -80,10 +90,9 @@ TEMPLATES = [
 # AUTHENTICATION CONFIGURATION
 # ------------------------------------------------------------------------------
 AUTHENTICATION_BACKENDS = (
-    # Needed to login by username in Django admin, regardless of `allauth`
+    'rest_framework_social_oauth2.backends.DjangoOAuth2',
+    # Needed to login by username in Django admin, regardless of other libs
     'django.contrib.auth.backends.ModelBackend',
-    # `allauth` specific authentication methods, such as login by e-mail
-    'allauth.account.auth_backends.AuthenticationBackend',
 )
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -97,11 +106,6 @@ REST_SESSION_LOGIN = True
 REST_AUTH_SERIALIZERS = {
     'USER_DETAILS_SERIALIZER': 'api.serializers.PlayerSerializer',
 }
-ACCOUNT_LOGOUT_ON_GET = True
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_USERNAME_MIN_LENGTH = 3
-# ACCOUNT_USERNAME_REQUIRED = False # ?
 AUTH_USER_MODEL = "tfoosball.Player"
 
 # REST FRAMEWORK CONFIG
@@ -111,6 +115,8 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'rest_framework_social_oauth2.authentication.SocialAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',

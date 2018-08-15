@@ -1,4 +1,3 @@
-from random import randint
 from smtplib import SMTPException
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -11,10 +10,10 @@ from rest_framework.decorators import list_route, detail_route
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ViewSet
-from rest_framework_extensions.mixins import NestedViewSetMixin, DetailSerializerMixin
 from rest_framework.permissions import IsAuthenticated
-
 from api.emailing import send_invitation
+from api.mixins import (DetailsSerializerMixin, NestedViewSetMixin)
+from api.utils import generate_username
 from tfoosball.models import Member, Match, Player, Team, WhatsNew
 from .serializers import (
     MatchSerializer,
@@ -41,7 +40,7 @@ class StandardPagination(PageNumberPagination):
     max_page_size = 50
 
 
-class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
+class TeamViewSet(NestedViewSetMixin, DetailsSerializerMixin, ModelViewSet):
     serializer_class = TeamSerializer
     serializer_detail_class = TeamDetailSerializer
     allowed_methods = [u'GET', u'POST', u'OPTIONS']
@@ -155,22 +154,11 @@ class TeamViewSet(NestedViewSetMixin, DetailSerializerMixin, ModelViewSet):
             )
         return Response(displayable('User activated'), status=status.HTTP_201_CREATED)
 
-    def generate_username(self, team, email):
-        if not email or not team:
-            return ''
-        unique = False
-        username = ''
-        while not unique:
-            core = email.rsplit('@')[0]
-            username = f'{core}-{randint(1000, 9999)}'[:32]
-            unique = not Member.objects.filter(team=team, username=username).exists()
-        return username
-
     @detail_route(methods=['post'], permission_classes=[AccessOwnTeamOnly, IsAuthenticated])
     def invite(self, request, pk=None):
         team = Team.objects.get(pk=pk)
         email = request.data.get('email', None)
-        username = request.data.get('username', self.generate_username(team, email))
+        username = request.data.get('username', generate_username(team, email))
         if not email:
             return Response(displayable('You haven\'t provided an email'), status=status.HTTP_400_BAD_REQUEST)
         is_member = team.member_set.filter(player__email=email).exists()
@@ -261,15 +249,12 @@ class MatchViewSet(ModelViewSet):
         return response
 
     @list_route(methods=['get'])
-    def points(self, request, *args, **kwargs):
+    def points(self, request):
         data = {k + '_id': v for k, v in request.query_params.items()}
         match = Match(**data, red_score=0, blue_score=10)
         try:
             result1 = abs(match.calculate_points()[0])
-        except (Match.red_att.RelatedObjectDoesNotExist,
-                Match.red_def.RelatedObjectDoesNotExist,
-                Match.blue_att.RelatedObjectDoesNotExist,
-                Match.blue_def.RelatedObjectDoesNotExist):
+        except Member.DoesNotExist:
             return Response({'detail': 'Players have not been provided'}, status=406)
         match = Match(**data, red_score=10, blue_score=0)
         result2 = abs(match.calculate_points()[0])
@@ -289,7 +274,7 @@ class PlayerViewSet(ModelViewSet):
         return queryset
 
     @detail_route(methods=['post'])
-    def invite(self, request, *args, **kwargs):
+    def invite(self, request, **kwargs):
         team__id = request.data.get('team', None)
         username = request.data.get('username', None)
         player__id = kwargs.get('pk', None)

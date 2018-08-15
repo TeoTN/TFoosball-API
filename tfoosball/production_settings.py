@@ -2,9 +2,6 @@ from tfoosball.common_settings import * # NOQA
 import os
 import dj_database_url
 
-
-SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
-
 DEBUG = os.environ.get('DJANGO_DEBUG', False)
 DEBUG = True if DEBUG == 'True' else DEBUG
 
