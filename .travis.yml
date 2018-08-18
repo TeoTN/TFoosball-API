@@ -12,6 +12,6 @@ script:
   - python manage.py test
 
 before_install:
-  - export DJANGO_SETTINGS_MODULE=tfoosball.dev_settings
+  - export DJANGO_SETTINGS_MODULE=tfoosball.config.dev_settings
   - export PYTHONPATH=$HOME/builds/TeoTN/TFoosball-API
   - export PIP_USE_MIRRORS=true
