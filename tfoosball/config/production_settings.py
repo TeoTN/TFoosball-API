@@ -1,4 +1,4 @@
-from tfoosball.common_settings import * # NOQA
+from .common_settings import *
 import os
 import dj_database_url
 

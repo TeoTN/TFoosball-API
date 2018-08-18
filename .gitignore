@@ -76,7 +76,7 @@ target/
 celerybeat-schedule
 
 # dotenv
-.env
+tfoosball/config/.env
 
 # virtualenv
 venv/

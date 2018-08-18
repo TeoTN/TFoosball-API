@@ -1,5 +1,5 @@
-from tfoosball.common_settings import *  # NOQA
-from tfoosball.common_settings import BASE_DIR
+from .common_settings import *
+from tfoosball.config.common_settings import BASE_DIR
 import os
 
 
@@ -15,7 +15,7 @@ ALLOWED_HOSTS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(BASE_DIR, '..', 'db.sqlite3'),
     }
 }
 
