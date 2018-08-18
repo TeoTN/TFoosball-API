@@ -77,9 +77,9 @@ class TeamInviteTestCase(TestCase):
         response = view(request, pk=self.dev_team.pk)
         response.render()
         member = Member.objects.filter(team=self.dev_team, username=username)
-        placeholder = PlayerPlaceholder.objects.filter(member=member, email=email)
-        self.assertEqual(member.count(), 1, 'Member should have been created')
-        self.assertTrue(placeholder.exists(), 'Player placeholder should have been created')
+        self.assertEqual(member.count(), 1, '(Exactly one) Member should\'ve been created')
+        placeholder = PlayerPlaceholder.objects.filter(member=member[0], email=email)
+        self.assertTrue(placeholder.exists(), 'Player placeholder should\'ve been created')
         self.assertNotEqual(member[0].activation_code, '', 'Activation code should be set')
         self.assertEqual(
             response.status_code, status.HTTP_201_CREATED,

@@ -45,7 +45,7 @@ class TeamEndpointTestCase(TestCase):
         response.render()
         team = Team.objects.filter(name='Frogz')
         self.assertEqual(team.count(), 1, 'Expected team to be created')
-        member = Member.objects.filter(player=self.admin_user, team=team, username='Ezyme')
+        member = Member.objects.filter(player=self.admin_user, team=team[0], username='Ezyme')
         self.assertEqual(member.count(), 1, 'Expected member to be created')
         expected_data = {'id': team[0].id, 'name': team[0].name, 'member_id': member[0].id}
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, 'expected HTTP 201 - Created')

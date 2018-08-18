@@ -22,13 +22,13 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_SEC
 # APP CONFIGURATION
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
+    'django.contrib.contenttypes',
+    'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.auth',
-    'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites',
 ]
 
 OTHER_APPS = [
